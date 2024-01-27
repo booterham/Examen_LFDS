@@ -6,7 +6,7 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 
 - [x] **Hernoem het naar `task.sh`.**
 
-## :pink_heart: Hulp opvragen
+## :purple_heart: Hulp opvragen
 
 - [x] Als je `help` opgeeft, drukt het script een hulpboodschap af 
 - [x] en sluit meteen af met exit-status 0. 
@@ -73,7 +73,7 @@ We verwachten verder ook dat je
 - [ ] gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. 
 - [ ] Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
 
-## Instellingen
+## :white_heart: Instellingen
 
 - [ ] Instellingen die de gebruiker kan aanpassen worden opgeslagen in een configuratiebestand `~/.taskrc`. 
 - [ ] De instellingen worden ingelezen met `source` en zijn dus Bash-syntax.
