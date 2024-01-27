@@ -6,7 +6,7 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 
 - [x] **Hernoem het naar `task.sh`.**
 
-## Hulp opvragen
+## Hulp opvragen :white_heart:
 
 - [ ] Als je `help` opgeeft, drukt het script een hulpboodschap af 
 - [ ] en sluit meteen af met exit-status 0. 
