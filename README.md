@@ -11,6 +11,7 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 - [x] Als je `help` opgeeft, drukt het script een hulpboodschap af 
 - [x] en sluit meteen af met exit-status 0. 
 - [x] Gebruik hiervoor een Here Document!
+- [x] updaten nu er nieuwe functionality is
 
 ```console
 Usage: ./task.sh COMMAND [ARGUMENTS]...
@@ -87,21 +88,11 @@ Volgende instellingen zijn mogelijk:
 | `TASK_FILE`   | Bestand `.tasks` in de home-directory van de gebruiker |
 | `TASK_EDITOR` | Absoluut pad naar `nano`                               |
 
-Voorbeeld:
 
-```console
-$ ./task.sh help
-Settings file not found. Creating it...
-Done. Please edit '/home/linuxmint/.taskrc' if you want to change settings.
-Usage: ./task.sh COMMAND [ARGUMENTS]...
-
-add "TASK"
-...
-$ cat ~/.taskrc 
-# task.sh settings file
-TASK_FILE="~/.tasks"
-TASK_EDITOR=/usr/bin/nano
-```
+### Extra functionality
+- [x] wanneer settings file niet compleet is met nodige values, vul het aan
+- [ ] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
+- [ ] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
 
 ## :white_heart: Taak toevoegen
 
