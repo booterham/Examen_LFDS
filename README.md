@@ -1,15 +1,16 @@
-# Linux for Data Scientists 23-24 - take-home scriptingopdracht - TODO'S
+# Linux for Data Scientists 23-24 - take-home scriptingopdracht
 
-- [x] Hernoem het naar `task.sh`.
+`task.sh` is een script dat een Linux gebruiker helpt bij het bijhouden van een todo-lijstje.
+
+Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur met een aantal voorgedefinieerde functies waar je mee kan beginnen. 
+
+- [x] **Hernoem het naar `task.sh`.**
 
 ## Hulp opvragen
 
-- [ ] help
-  - [ ] help kunnen opgeven
-  - [ ] hulpboodschap terugkrijgen
-  - [ ] exit-status 0
-
-Als je `help` opgeeft, drukt het script een hulpboodschap af en sluit meteen af met exit-status 0. Gebruik hiervoor een Here Document!
+- [ ] Als je `help` opgeeft, drukt het script een hulpboodschap af 
+- [ ] en sluit meteen af met exit-status 0. 
+- [ ] Gebruik hiervoor een Here Document!
 
 ```console
 Usage: ./task.sh COMMAND [ARGUMENTS]...
@@ -48,31 +49,36 @@ incrementing integer starting at 1.
 
 ## Algemene requirements
 
-- Zorg dat je naam en emailadres vermeld zijn op de voorziene plaats in de commentaar bovenaan het script!
-- Gebruik shell-opties om de robuustheid van het script te verhogen (bv. behandelen van onbestaande variabelen).
-- Gebruik ShellCheck om fouten te voorkomen!
-- Gebruik `stdout` exclusief voor het afdrukken van informatie uit het takenbestand: taakbeschrijvingen, contexten, labels, enz. Foutboodschappen, waarschuwingen, enz. worden afgedrukt op `stderr`.
-- Vermijd "hard-coded" waarden in de code, gebruik zoveel mogelijk variabelen!
-- Het script wordt altijd opgeroepen met als eerste argument een commando. Als dit niet het geval is, wordt verondersteld dat de gebruiker `help` bedoelde.
+- [ ] Zorg dat je naam en emailadres vermeld zijn op de voorziene plaats in de commentaar bovenaan het script!
+- [ ] Gebruik shell-opties om de robuustheid van het script te verhogen (bv. behandelen van onbestaande variabelen).
+- [ ] Gebruik ShellCheck om fouten te voorkomen!
+- [ ] Gebruik `stdout` exclusief voor het afdrukken van informatie uit het takenbestand: taakbeschrijvingen, contexten, labels, enz. Foutboodschappen, waarschuwingen, enz. worden afgedrukt op `stderr`.
+- [ ] Vermijd "hard-coded" waarden in de code, gebruik zoveel mogelijk variabelen!
+- [ ] Het script wordt altijd opgeroepen met als eerste argument een commando. Als dit niet het geval is, wordt verondersteld dat de gebruiker `help` bedoelde.
 
 ### Minimale requirements voor inhoudelijke beoordeling
 
 De hieronder opgesomde criteria zijn noodzakelijk om een bestand als script te kunnen uitvoeren. Inzendingen die hier niet aan voldoen kunnen we dan ook niet inhoudelijk beoordelen en krijgen meteen 0:
 
-- Het resultaat van zowel `bash -n task.sh` als `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
-- Het script mag geen DOS regeleindes (CRLF) hebben, anders kan Bash het niet interpreteren
-- Het script moet een geldige "shebang" hebben op de eerste regel
-- Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
+- [ ] Het resultaat van zowel 
+  - [ ] `bash -n task.sh` als 
+  - [ ] `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
+- [ ] Het script mag geen DOS regeleindes (CRLF) hebben, anders kan Bash het niet interpreteren
+- [ ] Het script moet een geldige "shebang" hebben op de eerste regel
+- [ ] Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
 
 Pas als al deze criteria voldaan zijn, kunnen we ook verder inhoudelijk beoordelen!
 
-We verwachten verder ook dat je gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
+We verwachten verder ook dat je 
+- [ ] gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. 
+- [ ] Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
 
 ## Instellingen
 
-Instellingen die de gebruiker kan aanpassen worden opgeslagen in een configuratiebestand `~/.taskrc`. De instellingen worden ingelezen met `source` en zijn dus Bash-syntax.
+- [ ] Instellingen die de gebruiker kan aanpassen worden opgeslagen in een configuratiebestand `~/.taskrc`. 
+- [ ] De instellingen worden ingelezen met `source` en zijn dus Bash-syntax.
 
-Als het bestand niet gevonden wordt, wordt het aangemaakt met standaardwaarden.
+- [ ] Als het bestand niet gevonden wordt, wordt het aangemaakt met standaardwaarden.
 
 Volgende instellingen zijn mogelijk:
 
@@ -99,7 +105,11 @@ TASK_EDITOR=/usr/bin/nano
 
 ## Taak toevoegen
 
-Met `add` kan je een nieuwe taak toevoegen. Elke taak krijgt een ID, een geheel getal beginnend bij 1 (zie verder). Na toevoegen van de taak wordt deze ID afgedrukt. De taak wordt toegevoegd aan het einde van het taakbestand. Aan het begin van de lijn komt het ID, gevolgd door een TAB-karakter en vervolgens de taakbeschrijving zelf.
+- [ ] Met `add` kan je een nieuwe taak toevoegen. 
+  - [ ] Elke taak krijgt een ID, een geheel getal beginnend bij 1 (zie verder). 
+  - [ ] Na toevoegen van de taak wordt deze ID afgedrukt. 
+  - [ ] De taak wordt toegevoegd aan het einde van het taakbestand. 
+  - [ ] Aan het begin van de lijn komt het ID, gevolgd door een TAB-karakter en vervolgens de taakbeschrijving zelf.
 
 Voorbeeld:
 
@@ -110,15 +120,15 @@ $ ./task.sh add
 Missing task description!
 ```
 
-Als je geen taakbeschrijving opgeeft, stopt het script met een geschikte foutmelding en exit-status.
+- [ ] Als je geen taakbeschrijving opgeeft, stopt het script met een geschikte foutmelding en exit-status.
 
-Het script bevat een functie `get_next_task_id` die de laagst mogelijke ID-waarde teruggeeft die nog niet in gebruik is. Deze wordt bepaald door in het takenbestand te zoeken naar reeds gebruikte IDs, beginnend met 1, vervolgens 2, enz. totdat een vrij ID gevonden wordt. Deze wordt dan toegekend aan de nieuwe taak.
+- [ ] Het script bevat een functie `get_next_task_id` die de laagst mogelijke ID-waarde teruggeeft die nog niet in gebruik is. Deze wordt bepaald door in het takenbestand te zoeken naar reeds gebruikte IDs, beginnend met 1, vervolgens 2, enz. totdat een vrij ID gevonden wordt. Deze wordt dan toegekend aan de nieuwe taak.
 
-In de beschrijving van een taak kan je volgende elementen gebruiken:
+In de beschrijving van een taak *kan* je volgende elementen gebruiken:
 
-- Een deadline, in de vorm van `jjjj-mm-dd`
-- Een "context", in de vorm van `@context`. Hiermee bedoelen we de plaats waar de taak kan uitgevoerd worden (bv. `@home`, `@campus`, `@phone`, ...). Dit is een concept uit het productiviteitssysteem [Getting Things Done](https://en.wikipedia.org/wiki/Getting_Things_Done).
-- Een "tag", in de vorm van `#tag`. Dit kan de naam van een project zijn, een trefwoord, prioriteitcode, ... Meerdere tags zijn mogelijk. Let op! Omdat Bash het `#`-teken speciaal behandelt (commentaar), moet je dit op de CLI escapen met een `\`-teken of de taakbeschrijving tussen aanhalingstekens zetten.
+- [ ] Een deadline, in de vorm van `jjjj-mm-dd`
+- [ ] Een "context", in de vorm van `@context`. Hiermee bedoelen we de plaats waar de taak kan uitgevoerd worden (bv. `@home`, `@campus`, `@phone`, ...). Dit is een concept uit het productiviteitssysteem [Getting Things Done](https://en.wikipedia.org/wiki/Getting_Things_Done).
+- [ ] Een "tag", in de vorm van `#tag`. Dit kan de naam van een project zijn, een trefwoord, prioriteitcode, ... Meerdere tags zijn mogelijk. Let op! Omdat Bash het `#`-teken speciaal behandelt (commentaar), moet je dit op de CLI escapen met een `\`-teken of de taakbeschrijving tussen aanhalingstekens zetten.
 
 Voorbeeld:
 
@@ -135,7 +145,7 @@ Added task 4
 
 ## Alle taken afdrukken
 
-Met `dump` druk je de inhoud van het takenbestand af.
+- [ ] Met `dump` druk je de inhoud van het takenbestand af.
 
 Voorbeeld:
 
@@ -149,7 +159,7 @@ $ ./task.sh dump
 
 ## Taakbestand bewerken
 
-Soms wil je wijzigingen aanbrengen aan een taak. Dit kan met `edit`. Het script opent het takenbestand in de teksteditor die in de instelling `TASK_EDITOR` staat.
+- [ ] Soms wil je wijzigingen aanbrengen aan een taak. Dit kan met `edit`. Het script opent het takenbestand in de teksteditor die in de instelling `TASK_EDITOR` staat.
 
 ```console
 $ ./task.sh edit
@@ -158,7 +168,7 @@ $ ./task.sh edit
 
 ## Overzicht contexten
 
-Met `list-contexts` druk je een alfabetisch gesorteerd overzicht af van alle contexten die in het takenbestand voorkomen, met voor elk het aantal taken. Dit zijn woorden die beginnen met een `@`-teken.
+- [ ] Met `list-contexts` druk je een alfabetisch gesorteerd overzicht af van alle contexten die in het takenbestand voorkomen, met voor elk het aantal taken. Dit zijn woorden die beginnen met een `@`-teken.
 
 Voorbeeld:
 
@@ -172,7 +182,7 @@ $ ./task.sh list-contexts
 
 ## Overzicht tags
 
-Met `list-tags` druk je een gesorteerd overzicht af van alle tags die in de taken voorkomen. Dit zijn woorden die beginnen met een `#`-teken. Let er op dat als een taakbeschrijving meerdere tags bevat, alle tags ook in de lijst voorkomen.
+- [ ] Met `list-tags` druk je een gesorteerd overzicht af van alle tags die in de taken voorkomen. Dit zijn woorden die beginnen met een `#`-teken. Let er op dat als een taakbeschrijving meerdere tags bevat, alle tags ook in de lijst voorkomen.
 
 Voorbeeld:
 
@@ -186,7 +196,7 @@ $ ./task.sh list-tags
 
 ## Taken zoeken
 
-Met `search` kan je zoeken naar taken die een bepaald (regex) tekstpatroon bevatten. Het script drukt alle taken af die voldoen aan het patroon, samen met hun ID.
+- [ ] Met `search` kan je zoeken naar taken die een bepaald (regex) tekstpatroon bevatten. Het script drukt alle taken af die voldoen aan het patroon, samen met hun ID.
 
 Voorbeeld:
 
@@ -202,7 +212,7 @@ Missing search pattern!
 
 ## Verlopen taken
 
-Met `overdue` toon je een lijst van taken met een deadline die verstreken is.
+- [ ] Met `overdue` toon je een lijst van taken met een deadline die verstreken is.
 
 Voorbeeld:
 
@@ -215,9 +225,13 @@ $ ./task.sh overdue
 
 ## Taak als afgerond markeren
 
-Met `done` kan je een taak als afgerond markeren. Dit doe je door het ID van de taak op te geven. Het script toont de taak en vraagt bevestiging. Als de gebruiker antwoordt met 'y', wordt de taak uit het taakbestand verwijderd, zo niet blijft de taak ongewijzigd.
+- [ ] Met `done` kan je een taak als afgerond markeren. 
+  - [ ] Dit doe je door het ID van de taak op te geven. 
+  - [ ] Het script toont de taak en vraagt bevestiging. 
+  - [ ] Als de gebruiker antwoordt met 'y', wordt de taak uit het taakbestand verwijderd, 
+  - [ ] zo niet blijft de taak ongewijzigd.
 
-Als de gebruiker geen ID opgeeft, of de ID komt niet voor in het takenbestand, stopt het script met een geschikte foutmelding en exit-status.
+  - [ ] Als de gebruiker geen ID opgeeft, of de ID komt niet voor in het takenbestand, stopt het script met een geschikte foutmelding en exit-status.
 
 Voorbeeld:
 
