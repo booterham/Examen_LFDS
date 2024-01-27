@@ -14,7 +14,8 @@
 # Variables
 #------------------------------------------------------------------------------
 
-settings_file=
+settings_file=~/.taskrc;
+logs_file=~/.tasklog
 
 #------------------------------------------------------------------------------
 # Main function
@@ -22,15 +23,27 @@ settings_file=
 
 main() {
     # Check if the settings file exists, and create it if not
+    if [ ! -e "$settings_file" ]; then
+        echo -e "TASK_FILE=~/.tasks\nTASK_EDITOR=/usr/bin/vim" > "$settings_file";
+    fi
+    
     
     # Evaluate the settings file
     # shellcheck source=/dev/null
-    source "${settings_file}"
+    taskrc_errors=$(bash -n "$settings_file" 2>&1);
+    if [[ -n $taskrc_errors ]]; then
+        echo -e "The settings file $settings_file contains syntax errors.\nPlease check $logs_file for detailed information."
+        exit 1;
+    fi
+    
+    
+    
+    
+    #source "$settings_file";
     
     # Check if arguments are present. If not, assume "help" was meant
     if [ "$#" -eq 0 ]; then
         usage;
-        exit 0;
     fi
     
     # Using a case statement, interpret the command (first argument) and any
@@ -111,7 +124,7 @@ search() {
 # Prints usage information for this script.
 usage() {
 cat << _EOF_
-Usage ${0}: 
+Usage ${0}:
 Usage: ./task.sh COMMAND [ARGUMENTS]...
 
 add 'TASK DESCRIPTION'
@@ -145,6 +158,8 @@ A task description is a string that may contain the following elements:
 In the task file, each task will additionaly be assigned a unique ID, an
 incrementing integer starting at 1.
 _EOF_
+    exit 0;
+    
 }
 
 main "${@}"

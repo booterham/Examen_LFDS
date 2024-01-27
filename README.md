@@ -65,20 +65,20 @@ De hieronder opgesomde criteria zijn noodzakelijk om een bestand als script te k
   - [ ] `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
 - [ ] Het script mag geen DOS regeleindes (CRLF) hebben, anders kan Bash het niet interpreteren
 - [x] Het script moet een geldige "shebang" hebben op de eerste regel
-- [ ] Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
+- [x] Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
 
 Pas als al deze criteria voldaan zijn, kunnen we ook verder inhoudelijk beoordelen!
 
 We verwachten verder ook dat je 
-- [ ] gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. 
+- [x] gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. 
 - [ ] Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
 
-## :white_heart: Instellingen
+## :purple_heart: Instellingen
 
-- [ ] Instellingen die de gebruiker kan aanpassen worden opgeslagen in een configuratiebestand `~/.taskrc`. 
-- [ ] De instellingen worden ingelezen met `source` en zijn dus Bash-syntax.
+- [x] Instellingen die de gebruiker kan aanpassen worden opgeslagen in een configuratiebestand `~/.taskrc`. 
+- [x] De instellingen worden ingelezen met `source` en zijn dus Bash-syntax.
 
-- [ ] Als het bestand niet gevonden wordt, wordt het aangemaakt met standaardwaarden.
+- [x] Als het bestand niet gevonden wordt, wordt het aangemaakt met standaardwaarden.
 
 Volgende instellingen zijn mogelijk:
 
