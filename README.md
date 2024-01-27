@@ -1,8 +1,13 @@
-# Linux for Data Scientists 23-24 - take-home scriptingopdracht
+# Linux for Data Scientists 23-24 - take-home scriptingopdracht - TODO'S
 
-- [ ] Hernoem het naar `task.sh`.
+- [x] Hernoem het naar `task.sh`.
 
 ## Hulp opvragen
+
+- [ ] help
+  - [ ] help kunnen opgeven
+  - [ ] hulpboodschap terugkrijgen
+  - [ ] exit-status 0
 
 Als je `help` opgeeft, drukt het script een hulpboodschap af en sluit meteen af met exit-status 0. Gebruik hiervoor een Here Document!
 
