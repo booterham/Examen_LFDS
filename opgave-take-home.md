@@ -2,9 +2,7 @@
 
 `task.sh` is een script dat een Linux gebruiker helpt bij het bijhouden van een todo-lijstje.
 
-Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur met een aantal voorgedefinieerde functies waar je mee kan beginnen. 
-
-- [x] **Hernoem het naar `task.sh`.**
+Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur met een aantal voorgedefinieerde functies waar je mee kan beginnen. **Hernoem het naar `task.sh`.**
 
 ## Hulp opvragen
 
