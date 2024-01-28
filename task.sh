@@ -88,20 +88,33 @@ main() {
                 "edit-settings")
                     edit_settings
                 ;;
+                "list-logs")
+                    list_logs "$@"
+                ;;
                 "list-settings")
                     list_settings
                 ;;
                 "add")
-                    add "$@"
+                    add "$@";
                 ;;
                 "done")
-                    delete_task "$@"
+                    delete_task "$@";
                 ;;
                 "search")
-                    search "$@"
+                    search "$@";
+                ;;
+                "start-over")
+                    delete_all_tasks;
                 ;;
                 *)
-                    throw_error "$1 is not a valid argument" "Tried calling function with invalid argument $1"
+                    case "$#" in
+                        1)
+                            throw_error "$1 is not a valid argument" "Tried calling function with invalid argument $1";
+                        ;;
+                        *)
+                            throw_error "$* are not a valid arguments" "Tried calling function with invalid arguments $*";
+                        ;;
+                    esac
                 ;;
             esac
         ;;
@@ -118,24 +131,26 @@ main() {
 add() {
     # check if there's an argument
     if [ "$#" -lt 2 ]; then
-        throw_error "Missing description" "Tried adding empty task."
+        throw_error "Missing description" "Tried adding task without description."
     fi
-    # get the ID for the task
-    nextID=$(get_next_task_id);
+    
+    # TODO: check if task has description, not only a date or context
+    #       only tags is allowed (e.g. task: 1  #carrots @store)
     
     # check if date is correct, if there is one
     check_date "${@:2}" "0";
     
+    # get the ID for the task
+    nextID=$(get_next_task_id);
+    
     # add the task to the task file
     args=("${@:2}")
     args_string="${args[*]}"
-    echo -e "$nextID\t$args_string" >> "$TASK_FILE"
+    newTask="$nextID\t$args_string"
+    echo -e "$newTask" >> "$TASK_FILE"
     
-    
-    
-    log_action "Created Task $nextID"
     # return ID
-    echo "Created Task $nextID"
+    log_action "Created Task $nextID" "Created Task $newTask"
 }
 
 
@@ -163,20 +178,47 @@ complete_settings() {
         log_action "TASK_FILE standard value has been added to settings file $settings_file"
     fi
     if ! grep -q "TASK_EDITOR" "$settings_file"; then
-        vim_location=$(which vim);
-        echo -e "TASK_EDITOR=$vim_location" >> "$settings_file";
+        nano_location=$(which nano);
+        echo -e "TASK_EDITOR=$nano_location" >> "$settings_file";
         log_action "TASK_EDITOR standard value has been added to settings file $settings_file"
     fi
+}
+
+# Usage: correct date manually
+# per incorrect date, give a correct date or an empty string to remove the date
+correct_date_manually() {
+    faulty_ids=($@)  # Split space-separated IDs
+    for id in "${faulty_ids[@]}"; do
+        task="$(grep "^$id.*$" "$TASK_FILE")"
+        olddate="$(echo "$task" | grep -oE "[0-9]+-[0-9]+-[0-9]+")"
+        newdate_ok=0
+        while [ "$newdate_ok" -eq 0 ]; do
+            echo "Enter correct date for"
+            read -p "    $task: " newdate
+            if [ "$(check_date "$newdate" "1")" != "False" ]; then
+                newdate_ok=1
+            else
+                log_action "Given faulty date $newdate while trying to correct date of task $task" "Wrong format, please enter a date in the following format: yyyy-mm-dd"
+            fi
+        done
+        sed -i "s/\($id.*\)$olddate/\1$newdate/" "$TASK_FILE"
+    done
+    
 }
 
 # Usage: create_settings_file
 # Creates the settings file with default values
 create_settings_file() {
     # don't hardcode the absolute path to vim
-    vim_location=$(which vim);
-    echo -e "TASK_FILE=~/.tasks\nTASK_EDITOR=$vim_location" > "$settings_file";
+    nano_location=$(which nano);
+    echo -e "TASK_FILE=~/.tasks\nTASK_EDITOR=$nano_location" > "$settings_file";
     log_action "$settings_file created"
     
+}
+
+delete_all_tasks() {
+    rm "$TASK_FILE";
+    # no need to create the faile again, this is done by ensure_task_file
 }
 
 # Usage: delete_task ID
@@ -192,12 +234,13 @@ delete_task() {
     if [ -n "$task" ]; then
         selection=0;
         while [ "$selection" -eq 0 ]; do
-            read -p "Delete Task $task [y/n]? " okay
+            read -p "Delete Task $task [Y/n]? " okay
             case "$okay" in
-                "y")
+                "y"|"")
                     # mv "$tempfile" "$TASK_FILE"
                     sedstring="/$task/d"
                     sed -i "$sedstring" "$TASK_FILE"
+                    log_action "Removed Task $task" "Removed Task $task"
                     selection=1
                 ;;
                 "n")
@@ -225,15 +268,26 @@ dump() {
 # Opens the task file in the editor specified in the settings file.
 edit() {
     ensure_task_file;
-    log_action "editor opened $TASK_FILE, file may be edited"
-    "$TASK_EDITOR" "$TASK_FILE";
+    edit_file "$TASK_FILE"
+    # log_action "editor opened $TASK_FILE, file may be edited"
+    # "$TASK_EDITOR" "$TASK_FILE";
 }
 
 # Usage: edit settings file
 # opens file in selected editor to edit it
 edit_settings() {
-    log_action "editor opened $settings_file, file may be edited"
-    exec "$TASK_EDITOR" "$settings_file"
+    edit_file "$settings_file"
+    # log_action "editor opened $settings_file, file may be edited"
+    # "$TASK_EDITOR" "$settings_file"
+}
+
+edit_file() {
+    log_action "editor opened $1, file may be edited"
+    "$TASK_EDITOR" "$1"
+}
+
+ensure_ids() {
+    echo "ensure id's needs to be implemented"
 }
 
 # Usage: Ensure the existence and syntax of a task file
@@ -244,40 +298,52 @@ ensure_task_file() {
     if [ ! -e "$TASK_FILE" ]; then
         touch "$TASK_FILE";
     else
-        :
-        # TODO id's have to be present
+        # TODO task needs at least some text or a tag (otherwise it contains useless info)
+        
+        # TODO id's have to be present and need tab between id and description
+        ensure_ids;
         # TODO id's need to be unique
-        # TODO no duplicate contexts in one task
+        unique_ids;
+        # no duplicate contexts in one task
+        remove_duplicate_contexts;
+        # no duplicate tags in one task
+        remove_duplicate_tags;
         # date in correct format
         faulty_tasks=()
         while IFS= read -r line; do
             if [ "$(check_date "$line" "1")" == "False" ]; then
                 id="$(echo "$line" | grep -oE "^[0-9]+")"
                 faulty_tasks+=("$id")
-                echo "task "$id" has incorrect date"
+                faulty_date="$(echo "$line" | grep -oE "[0-9]+-[0-9]+-[0-9]+")"
+                echo "task "$id" has incorrect date: $faulty_date"
             fi
         done < $TASK_FILE
         if [ ${#faulty_tasks[@]} -gt 0 ]; then
-            echo -e "[1]\tRemove incorrect dates"
-            echo -e "[2]\tRemove tasks with incorrect dates"
-            echo -e "[3]\tCorrect dates manually"
-            read -p "Choose option 1 or 2: " method
+            echo -e "[d]\tRemove incorrect dates"
+            echo -e "[t]\tRemove tasks with incorrect dates"
+            echo -e "[e]\tCorrect manually"
             selection=0
             while [ "$selection" -eq 0 ]; do
+                read -p "Choose option d, t or e: " method
                 case $method in
-                    1)
-                        remove_dates "${faulty_tasks[*]}"
+                    d)
+                        remove_faults -d "${faulty_tasks[*]}"
                         selection=1
                     ;;
-                    2)
-                        remove_tasks "${faulty_tasks[*]}"
+                    t)
+                        remove_faults -t "${faulty_tasks[*]}"
+                        selection=1;
+                    ;;
+                    e)
+                        correct_date_manually "${faulty_tasks[*]}";
                         selection=1;
                     ;;
                     *)
-                        echo "Invalid option $method. Please choose '1' or '2'"
+                        echo "Invalid option '$method'."
                     ;;
                 esac
             done
+            log_action "Task file contained faulty dates, this has now been fixed"
         fi
     fi
 }
@@ -299,8 +365,7 @@ get_next_task_id() {
             break;
         fi
     done
-    log_action "Found Next ID $nextID"
-    echo "$nextID";
+    echo "$(log_action "Found Next ID $nextID" "$nextID")"
 }
 
 # Usage: list_contexts
@@ -309,10 +374,32 @@ list_contexts() {
     list_delim "@";
 }
 
+# Usage: list all words starting with specific delimiter
+# Common code between list-tags and list-contexts
 list_delim() {
     ensure_task_file;
     # find all contexts, per context, count lines with matching grep
     cat "$TASK_FILE" | grep -oE "$1[^ ]+" | sort | uniq -c
+}
+
+
+# Usage: list ligs
+# list the last N logs. If N is greater than the amount of lines in the file,
+# the whole file is written to stdout
+list_logs() {
+    if [ "$#" -eq 1 ]; then
+        lines=10;
+        elif [ "$#" -eq 2 ] && [[ "$2" =~ ^[0-9]+$ ]]; then
+        # make sure N isn't greater than the amount of lines in the file
+        lines=$(wc -l < "$logs_file")
+        if [ "$2" -lt "$lines" ]; then
+            lines="$2"
+        fi
+    else
+        throw_error "list-logs recuires one integer argument" "Tried calling '$*', incorrect parameters."
+    fi
+    echo "SHOWING LAST $lines LINES FROM LOGS:"
+    tail -n "$lines" "$logs_file"
 }
 
 # Usage: list settings
@@ -332,6 +419,10 @@ list_tags() {
 # called by functions after propper execution
 log_action() {
     echo -e "$(date +"%d/%m/%Y-%H:%M:%S")\tSUCCES\t$1" >> "$logs_file"
+    # if something needs to be written to stdout, do it here
+    if [ "$#" -eq 2 ]; then
+        echo -e "$2"
+    fi
 }
 
 # Usage: overdue
@@ -339,32 +430,46 @@ log_action() {
 overdue() {
     ensure_task_file;
     tasks_with_dates="$(cat "$TASK_FILE" | grep -E "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
-    while IFS= read -r task; do
+    for task in "${tasks_with_dates[@]}"; do
         taskdate="$(echo "$task" | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
         dateseconds=$(date -d "$taskdate" +%s)
-        current_seconds=$(date +%s)
-        if [ "$dateseconds" -lt "$current_seconds" ]; then 
-        echo "$task"
-        fi
-    done <<< "$tasks_with_dates"
+        currentsecconds=$(date +%s)
+        [ "$dateseconds" -lt "$current_seconds" ] && echo "$1 is in the past." || echo "$1 is not in the past."
+    done
 }
 
-# Usage: remove the date from a list of tasks, given the id's
-# used for removing faulty dates
-remove_dates() {
-    faulty_ids=($1)  # Split space-separated IDs
+remove_faults() {
+    # Process command-line options
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -d) # remove dates
+                replace="\1"
+                shift
+            ;;
+            -t) # remove whole tasks
+                replace=""
+                shift
+            ;;
+            *)
+                break
+            ;;
+        esac
+    done
+    
+    faulty_ids=($@)  # Split space-separated IDs
     cp "$TASK_FILE" "$tempfile"
     for id in "${faulty_ids[@]}"; do
-        sedstring="s/\(^$id.*[^0-9]\)[0-9]\+-[0-9]\+-[0-9]\+ */\1/g"
+        echo "id $id"
+        sedstring="s/\(^$id.*[^0-9]\)[0-9]\+-[0-9]\+-[0-9]\+ */$replace/g"
         sed -i "$sedstring" "$tempfile"
     done
     sed -i '/^$/d' "$tempfile"
     cat "$tempfile"
     selection=0
     while [ "$selection" -eq 0 ]; do
-        read -p "Changes Okay [y/n]? " okay
+        read -p "Changes Okay [Y/n]? " okay
         case "$okay" in
-            "y")
+            "y"|"")
                 mv "$tempfile" "$TASK_FILE"
                 selection=1
             ;;
@@ -377,38 +482,28 @@ remove_dates() {
             ;;
         esac
     done
+    
 }
 
 
+# Usage: remove all duplicate words with specified delimiter
+# common code of remove_duplicate_tags and remove_duplicate_contexts
+remove_duplicate_delim() {
+    sed -i ":a; s/\($1[^[:space:]]\+ *\)\(.*\)\1/\1\2/g; ta" "$TASK_FILE";
+}
 
-# Usage
-#
-remove_tasks() {
-    faulty_ids=($1)  # Split space-separated IDs
-    cp "$TASK_FILE" "$tempfile"
-    for id in "${faulty_ids[@]}"; do
-        sedstring="s/^$id.*[^0-9][0-9]\+-[0-9]\+-[0-9]\+ *//g"
-        sed -i "$sedstring" "$tempfile"
-    done
-    sed -i '/^$/d' "$tempfile"
-    cat "$tempfile"
-    selection=0
-    while [ "$selection" -eq 0 ]; do
-        read -p "Changes Okay [y/n]? " okay
-        case "$okay" in
-            "y")
-                mv "$tempfile" "$TASK_FILE"
-                selection=1
-            ;;
-            "n")
-                ensure_task_file;
-                selection=1
-            ;;
-            *)
-                echo "Invalid option $okay. Enter 'y' or 'n'."
-            ;;
-        esac
-    done
+# Usage: remove duplicate contexts
+# there shouldn't be multiple of the same contexts in one task, this will mess with the count
+# of contexts
+remove_duplicate_contexts() {
+    remove_duplicate_delim "@"
+}
+
+# Usage: remove duplicate tags
+# there shouldn't be multiple of the same tag in one task, this will mess with the count
+# of tags
+remove_duplicate_tags() {
+    remove_duplicate_delim "#"
 }
 
 # Usage: search PATTERN
@@ -417,7 +512,7 @@ search() {
     if [ "$#" -ne 2 ]; then
         throw_error "Search needs exactly one argument" "Tries calling Search with $# arguments"
     fi
-    cat "$TASK_FILE" | grep "$2"
+    cat "$TASK_FILE" | grep --color "$2"
     
 }
 
@@ -427,6 +522,11 @@ throw_error() {
     echo -e "Error: $1.\nTry ${0} \"help\" for usage information." >&2
     echo -e "$(date +"%d/%m/%Y-%H:%M:%S")\tERROR\t$2" >> "$logs_file"
     exit 1;
+}
+
+# Usage: remove duplicate ids
+unique_ids() {
+    echo "uniqueids"
 }
 
 # Usage: usage
@@ -453,13 +553,17 @@ overdue
              show all overdue tasks
 search 'PATTERN'
              show all tasks matching (regex) PATTERN
+start-over
+             delete all tasks
 
------ SETTINGS -----
+----- SETTINGS & LOGS -----
 
 edit-settings
              edit the settings file
 list-settings
              show all settings in the settings-file
+list-logs N
+             show last N logs
 
 ----- TASK FORMAT -----
 

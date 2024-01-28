@@ -41,7 +41,7 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 
 - [x] Als het bestand niet gevonden wordt, wordt het aangemaakt met standaardwaarden.
 
-- [ ] task_file en task_editor zijn mogelijk in te stellen via settings
+- [x] task_file en task_editor zijn mogelijk in te stellen via settings
 
 | Instelling    | Standaardwaarde                                        |
 | :------------ | :----------------------------------------------------- |
@@ -106,7 +106,10 @@ In de beschrijving van een taak *kan* je volgende elementen gebruiken:
   - [x] Als de gebruiker geen ID opgeeft, of de ID komt niet voor in het takenbestand, stopt het script met een geschikte foutmelding en exit-status.
 
 ## :white_heart: Extra functionality
+### :purple_heart: Settings file moet nodige values hebben
 - [x] wanneer settings file niet compleet is met nodige values, vul het aan
+### :purple_heart: Settings kunnen bewerken via script
 - [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
 - [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
-- [ ] Checken of .tasks effectief juiste data bevat
+- [ ] Checken of .tasks effectief juiste data bevat mbv `ensure_task_file()`
+- [ ] List logs met variabele N last logs mbv `list_logs()`
