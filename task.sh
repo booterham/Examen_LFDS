@@ -129,6 +129,9 @@ main() {
 # Usage: add "TASK"
 # Adds a task to the task file and responds with the task ID.
 add() {
+    # make sure task file exists and is propperly formatted
+    ensure_task_file
+    
     # check if there's an argument
     if [ "$#" -lt 2 ]; then
         throw_error "Missing description" "Tried adding task without description."
@@ -146,6 +149,9 @@ add() {
     # check if date is correct, if there is one
     check_date "$newTask" "0";
     
+    # check if the task contains useful content
+    check_content -i "$newTask"
+    
     # get the ID for the task
     nextID=$(get_next_task_id);
     
@@ -153,7 +159,49 @@ add() {
     echo -e "$nextID\t$newTask" >> "$TASK_FILE"
     
     # return ID
-    log_action "Created Task $nextID" "Created Task $newTask"
+    log_action "Created Task $nextID" "Created Task $nextID\t$newTask"
+}
+
+# Usage: check the content of a task
+# can be used to check existing tasks in task file but also for new tasks that
+# are being added
+check_content() {
+    while [ "$#" -gt 0 ]; do
+        case "$1" in
+            -i) # inline
+                shift
+                status=$(check_task_content "$1")
+                if [ "$status" -eq 1 ]; then
+                    throw_error "Task must at least contain one word or a tag. Tasks that consist only out of contexts or dates have no meaning" "Trieed adding meaningless tag $1"
+                fi
+            ;;
+            -t) # task file
+                touch "$tempfile"
+                while IFS= read -r line; do
+                    status=$(check_task_content "$line")
+                    if [ "$status" -eq 0 ]; then
+                        echo "$line" >> "$tempfile"
+                    fi
+                done < $TASK_FILE
+                mv "$tempfile" "$TASK_FILE"
+                shift
+            ;;
+            *)
+                break
+            ;;
+        esac
+    done
+}
+
+# Usage: check content for one task
+# returns
+check_task_content() {
+    rest=$(echo "$1" | sed 's/@\b\w\+\b//g;s/^[0-9]\+[[:blank:]]\+//g;s/[0-9]\+-[0-9]\+-[0-9]\+//g;s/ //g' || echo "")
+    if [ "$rest" == "" ]; then
+        echo "1"
+    else
+        echo "0"
+    fi
 }
 
 
@@ -170,6 +218,15 @@ check_date() {
             else echo False
             fi
         fi
+        # more specific check on amount of numbers
+        specificformat=$(echo "${@:1:$#-1}" | grep -Eo "[0-9]{4}-[0-9]+-[0-9]+" || echo "")
+        if [ "$specificformat" == "" ]; then
+            if [ "${!#}" -eq 0 ]; then
+                throw_error "Invalid date: $datum" "Tried adding task with invalid date: $datum"
+            else echo False
+            fi
+        fi
+        
     fi
 }
 
@@ -291,9 +348,6 @@ edit_file() {
     
 }
 
-ensure_ids() {
-    echo "ensure id's needs to be implemented"
-}
 
 # Usage: Ensure the existence and syntax of a task file
 # Check the syntax of a task file. If there are incorrect lines, give the option
@@ -303,8 +357,6 @@ ensure_task_file() {
     if [ ! -e "$TASK_FILE" ]; then
         touch "$TASK_FILE";
     else
-        # TODO task needs at least some text or a tag (otherwise it contains useless info)
-        
         # check if IDs are okay
         check_ids;
         # no duplicate contexts in one task
@@ -348,16 +400,24 @@ ensure_task_file() {
             done
             log_action "Task file no longer contains faulty dates"
         fi
+        # tasks needs at least some text or a tag (otherwise it contains useless info)
+        check_content -t;
     fi
-    exit 0;
 }
 
 # Usage: get_next_task_id
 # Looks in the task file for the next available task ID (an integer starting at
 # 1) and prints it. If a task was previously deleted, its ID may be reused.
 get_next_task_id() {
+    # if a file is given, use this file to scan for ids
+    if [ "$#" -eq 1 ]; then
+        file="$1"
+    else
+        file="$TASK_FILE"
+    fi
+    
     # read all ID's from file, sort them for later
-    IDs=$(grep -Eo "^[0-9]+" "$TASK_FILE" | sort -n );
+    IDs=$(grep -Eo "^[0-9]+" "$file" | sort -n );
     
     
     # Find the lowest integer not in the existing IDs
@@ -434,11 +494,19 @@ log_action() {
 overdue() {
     ensure_task_file;
     tasks_with_dates="$(cat "$TASK_FILE" | grep -E "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
-    for task in "${tasks_with_dates[@]}"; do
+    # for task in "${tasks_with_dates[@]}"; do
+    #     echo "task met datum: $task done"
+    #     taskdate="$(echo "$task" | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
+    #     dateseconds=$(date -d "$taskdate" +%s)
+    #     currentsecconds=$(date +%s)
+    #     [ "$dateseconds" -lt "$currentsecconds" ] && echo "$task is in the past." || echo ""
+    # done
+    
+    echo "$tasks_with_dates" | while IFS= read -r task; do
         taskdate="$(echo "$task" | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
         dateseconds=$(date -d "$taskdate" +%s)
         currentsecconds=$(date +%s)
-        [ "$dateseconds" -lt "$current_seconds" ] && echo "$1 is in the past." || echo "$1 is not in the past."
+        [ "$dateseconds" -lt "$currentsecconds" ] && echo "$task" || :
     done
 }
 
@@ -463,7 +531,6 @@ remove_faults() {
     faulty_ids=($@)  # Split space-separated IDs
     cp "$TASK_FILE" "$tempfile"
     for id in "${faulty_ids[@]}"; do
-        echo "id $id"
         sedstring="s/\(^$id.*[^0-9]\)[0-9]\+-[0-9]\+-[0-9]\+ */$replace/g"
         sed -i "$sedstring" "$tempfile"
     done
@@ -535,11 +602,12 @@ throw_error() {
 # Usage: check ids
 # remove duplicates, add when theres no id, correct formatting if needed
 check_ids() {
+    touch "$tempfile"
     while IFS= read -r line; do
         # if line starts with whitespace before id, delete it
         line="$(echo "$line" | sed 's/^[[:blank:]]\+\([0-9]\)/\1/g' )"
         # the whitespace between ID and description should be one tab
-        line="$(echo "$line" | sed 's/^\([0-9]\+\)[[:blank:]]*\([a-zA-Z0-9]\)/\1\t\2/g' )"
+        line="$(echo "$line" | sed 's/^\([0-9]\+\)[[:blank:]]*\([a-zA-Z0-9@#]\)/\1\t\2/g' )"
         # if task now doesnt have an integer as first char, it doesnt have an id yet
         if [[ "$line" =~ ^[^0-9] ]]; then
             nextID=$(get_next_task_id)
@@ -547,18 +615,18 @@ check_ids() {
         fi
         # check if tempfile already has line with same id
         id=$(echo "$line" | grep -oE "^[0-9]+[[:blank:]]")
-        echo "currentid is $id"
         ids=$(get_ids "$tempfile")
-        echo "ids is $ids done"
         if [[ "$ids" =~ "$id" ]]; then
-            echo "dupe"
+            newID=$(get_next_task_id "$tempfile")
+            line="$(echo "$line" | sed "s/^$id/$newID\t/")"
         fi
         echo "$line" >> "$tempfile"
     done < $TASK_FILE
+    mv "$tempfile" "$TASK_FILE"
 }
 
 get_ids() {
-    grep -oE "^[0-9]+[[:blank:]]" "$1"
+    echo "$(grep -oE "^[0-9]+[[:blank:]]" "$1")"
 }
 
 # Usage: usage
