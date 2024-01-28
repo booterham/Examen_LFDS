@@ -247,6 +247,7 @@ ensure_task_file() {
         :
         # TODO id's have to be present
         # TODO id's need to be unique
+        # TODO no duplicate contexts in one task
         # date in correct format
         faulty_tasks=()
         while IFS= read -r line; do
@@ -305,9 +306,13 @@ get_next_task_id() {
 # Usage: list_contexts
 # Lists all contexts in the task file with the number of tasks for each.
 list_contexts() {
+    list_delim "@";
+}
+
+list_delim() {
     ensure_task_file;
-    echo "list_contexts moet nog geïmplementeerd worden"
-    
+    # find all contexts, per context, count lines with matching grep
+    cat "$TASK_FILE" | grep -oE "$1[^ ]+" | sort | uniq -c
 }
 
 # Usage: list settings
@@ -320,7 +325,7 @@ list_settings() {
 # List all tags in the task file (even if multiple tags are used in a single
 # task) alphabetically.
 list_tags() {
-    echo "list_tags moet nog geïmplementeerd worden"
+    list_delim "#";
 }
 
 # Usage: log actions in log file
@@ -332,7 +337,16 @@ log_action() {
 # Usage: overdue
 # Lists all tasks with a deadline (in format yyyy-mm-dd) in the past.
 overdue() {
-    echo "overdue moet nog geïmplementeerd worden"
+    ensure_task_file;
+    tasks_with_dates="$(cat "$TASK_FILE" | grep -E "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
+    while IFS= read -r task; do
+        taskdate="$(echo "$task" | grep -Eo "[0-9]{4}-[0-9]{2}-[0-9]{2}")"
+        dateseconds=$(date -d "$taskdate" +%s)
+        current_seconds=$(date +%s)
+        if [ "$dateseconds" -lt "$current_seconds" ]; then 
+        echo "$task"
+        fi
+    done <<< "$tasks_with_dates"
 }
 
 # Usage: remove the date from a list of tasks, given the id's
@@ -400,7 +414,10 @@ remove_tasks() {
 # Usage: search PATTERN
 # Searches the task file for tasks matching PATTERN and prints them to stdout.
 search() {
-    echo "search moet nog geïmplementeerd worden"
+    if [ "$#" -ne 2 ]; then
+        throw_error "Search needs exactly one argument" "Tries calling Search with $# arguments"
+    fi
+    cat "$TASK_FILE" | grep "$2"
     
 }
 

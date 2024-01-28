@@ -81,7 +81,7 @@ Pas als al deze criteria voldaan zijn, kunnen we ook verder inhoudelijk beoordel
 
 We verwachten verder ook dat je 
 - [x] gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. 
-- [ ] Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
+- [x] Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
 
 ## :purple_heart: Instellingen
 
@@ -164,9 +164,9 @@ $ ./task.sh edit
 [... editor opent ...]
 ```
 
-## :white_heart: Overzicht contexten
+## :purple_heart: Overzicht contexten
 
-- [ ] Met `list-contexts` druk je een alfabetisch gesorteerd overzicht af van alle contexten die in het takenbestand voorkomen, met voor elk het aantal taken. Dit zijn woorden die beginnen met een `@`-teken.
+- [x] Met `list-contexts` druk je een alfabetisch gesorteerd overzicht af van alle contexten die in het takenbestand voorkomen, met voor elk het aantal taken. Dit zijn woorden die beginnen met een `@`-teken.
 
 Voorbeeld:
 
@@ -178,9 +178,9 @@ $ ./task.sh list-contexts
     4 @store
 ```
 
-## :white_heart: Overzicht tags
+## :purple_heart: Overzicht tags
 
-- [ ] Met `list-tags` druk je een gesorteerd overzicht af van alle tags die in de taken voorkomen. Dit zijn woorden die beginnen met een `#`-teken. Let er op dat als een taakbeschrijving meerdere tags bevat, alle tags ook in de lijst voorkomen.
+- [x] Met `list-tags` druk je een gesorteerd overzicht af van alle tags die in de taken voorkomen. Dit zijn woorden die beginnen met een `#`-teken. Let er op dat als een taakbeschrijving meerdere tags bevat, alle tags ook in de lijst voorkomen.
 
 Voorbeeld:
 
@@ -192,9 +192,9 @@ $ ./task.sh list-tags
 #world-domination
 ```
 
-## :white_heart: Taken zoeken
+## :purple_heart: Taken zoeken
 
-- [ ] Met `search` kan je zoeken naar taken die een bepaald (regex) tekstpatroon bevatten. Het script drukt alle taken af die voldoen aan het patroon, samen met hun ID.
+- [x] Met `search` kan je zoeken naar taken die een bepaald (regex) tekstpatroon bevatten. Het script drukt alle taken af die voldoen aan het patroon, samen met hun ID.
 
 Voorbeeld:
 
@@ -208,9 +208,9 @@ $ ./task.sh search
 Missing search pattern!
 ```
 
-## :white_heart: Verlopen taken
+## :purple_heart: Verlopen taken
 
-- [ ] Met `overdue` toon je een lijst van taken met een deadline die verstreken is.
+- [x] Met `overdue` toon je een lijst van taken met een deadline die verstreken is.
 
 Voorbeeld:
 
@@ -248,7 +248,7 @@ $ ./task.sh done 999
 Task 999 not found!
 ```
 
-## Extra functionality
+## :white_heart: Extra functionality
 - [x] wanneer settings file niet compleet is met nodige values, vul het aan
 - [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
 - [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
