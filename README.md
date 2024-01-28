@@ -13,50 +13,6 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 - [x] Gebruik hiervoor een Here Document!
 - [x] updaten nu er nieuwe functionality is
 
-```console
-Usage ${0} COMMAND [ARGUMENTS]...
-
------ TASKS -----
-
-add 'TASK DESCRIPTION'
-             add a task
-done ID
-             mark task with ID as done
-dump
-             show all tasks, including task ID
-edit
-             edit the task file
-list-contexts
-             show all contexts (starting with @)
-list-tags
-             show all tags (starting with #)
-overdue
-             show all overdue tasks
-search 'PATTERN'
-             show all tasks matching (regex) PATTERN
-
------ SETTINGS -----
-
-edit-settings
-             edit the settings file
-list-settings
-             show all settings in the settings-file
-
------ TASK FORMAT -----
-
-A task description is a string that may contain the following elements:
-
-- @context,   i.e. a place or situation in which the task can be performed
-              (See Getting Things Done) e.g. @home, @campus, @phone, @store, ...
-- #tag        tags, that can be used to group tasks within projects,
-              priorities, etc. e.g. #linux, #de-prj, #mit (most important
-              task), ... Multiple tags are allowed!
-- yyyy-mm-dd  a due date in ISO-8601 format
-
-In the task file, each task will additionaly be assigned a unique ID, an
-incrementing integer starting at 1.
-```
-
 ## :white_heart: Algemene requirements
 
 - [x] Zorg dat je naam en emailadres vermeld zijn op de voorziene plaats in de commentaar bovenaan het script!
@@ -68,8 +24,6 @@ incrementing integer starting at 1.
 
 ### :white_heart: Minimale requirements voor inhoudelijke beoordeling
 
-De hieronder opgesomde criteria zijn noodzakelijk om een bestand als script te kunnen uitvoeren. Inzendingen die hier niet aan voldoen kunnen we dan ook niet inhoudelijk beoordelen en krijgen meteen 0:
-
 - [ ] Het resultaat van zowel 
   - [ ] `bash -n task.sh` als 
   - [ ] `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
@@ -77,9 +31,6 @@ De hieronder opgesomde criteria zijn noodzakelijk om een bestand als script te k
 - [x] Het script moet een geldige "shebang" hebben op de eerste regel
 - [x] Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
 
-Pas als al deze criteria voldaan zijn, kunnen we ook verder inhoudelijk beoordelen!
-
-We verwachten verder ook dat je 
 - [x] gebruik maakt van het aangeleverde sjabloon en de daarin gedefinieerde functies implementeert. 
 - [x] Je mag uiteraard wel extra functies toevoegen als je dat nuttig vindt.
 
@@ -90,7 +41,7 @@ We verwachten verder ook dat je
 
 - [x] Als het bestand niet gevonden wordt, wordt het aangemaakt met standaardwaarden.
 
-Volgende instellingen zijn mogelijk:
+- [ ] task_file en task_editor zijn mogelijk in te stellen via settings
 
 | Instelling    | Standaardwaarde                                        |
 | :------------ | :----------------------------------------------------- |
@@ -109,15 +60,6 @@ Volgende instellingen zijn mogelijk:
 ### Extra functionality
 - [x] controleer correct formaat als er datum is bijgevoegd
 
-Voorbeeld:
-
-```console
-$ ./task.sh add 'Buy sugar, milk, eggs, flour for #pancakes @store'
-Added task 1
-$ ./task.sh add
-Missing task description!
-```
-
 - [x] Als je geen taakbeschrijving opgeeft, stopt het script met een geschikte foutmelding en exit-status.
 
 - [x] Het script bevat een functie `get_next_task_id` die de laagst mogelijke ID-waarde teruggeeft die nog niet in gebruik is. Deze wordt bepaald door in het takenbestand te zoeken naar reeds gebruikte IDs, beginnend met 1, vervolgens 2, enz. totdat een vrij ID gevonden wordt. Deze wordt dan toegekend aan de nieuwe taak.
@@ -125,101 +67,33 @@ Missing task description!
 In de beschrijving van een taak *kan* je volgende elementen gebruiken:
 
 - [x] Een deadline, in de vorm van `jjjj-mm-dd` (wordt gecheckt)
-- [x] Een "context", in de vorm van `@context`. Hiermee bedoelen we de plaats waar de taak kan uitgevoerd worden (bv. `@home`, `@campus`, `@phone`, ...). Dit is een concept uit het productiviteitssysteem [Getting Things Done](https://en.wikipedia.org/wiki/Getting_Things_Done).
+- [x] Een "context", in de vorm van `@context`. Hiermee bedoelen we de plaats waar de taak kan uitgevoerd worden (bv. `@home`, `@campus`, `@phone`, ...).
 - [x] Een "tag", in de vorm van `#tag`. Dit kan de naam van een project zijn, een trefwoord, prioriteitcode, ... Meerdere tags zijn mogelijk. Let op! Omdat Bash het `#`-teken speciaal behandelt (commentaar), moet je dit op de CLI escapen met een `\`-teken of de taakbeschrijving tussen aanhalingstekens zetten.
-
-Voorbeeld:
-
-```console
-$ ./task.sh add 'Buy sugar, milk, eggs, flour for #pancakes @store'
-Added task 1
-$ ./task.sh add 'Bake #pancakes @home'
-Added task 2
-$ ./task.sh add Eat all the \#pancakes @home
-Added task 3
-$ ./task.sh add Do the dishes \#pancakes @home
-Added task 4
-```
 
 ## :purple_heart: Alle taken afdrukken
 
 - [x] Met `dump` druk je de inhoud van het takenbestand af.
 
-Voorbeeld:
-
-```console
-$ ./task.sh dump
-1	Buy sugar, milk, eggs, flour for #pancakes @store
-2	Bake #pancakes @home
-3	Eat all the #pancakes @home
-4	Do the dishes #pancakes @home
-```
-
 ## :purple_heart: Taakbestand bewerken
 
 - [x] Soms wil je wijzigingen aanbrengen aan een taak. Dit kan met `edit`. Het script opent het takenbestand in de teksteditor die in de instelling `TASK_EDITOR` staat.
 
-```console
-$ ./task.sh edit
-[... editor opent ...]
-```
 
 ## :purple_heart: Overzicht contexten
 
 - [x] Met `list-contexts` druk je een alfabetisch gesorteerd overzicht af van alle contexten die in het takenbestand voorkomen, met voor elk het aantal taken. Dit zijn woorden die beginnen met een `@`-teken.
 
-Voorbeeld:
-
-```console
-$ ./task.sh list-contexts
-    5 @campus
-   10 @home
-    2 @phone
-    4 @store
-```
-
 ## :purple_heart: Overzicht tags
 
 - [x] Met `list-tags` druk je een gesorteerd overzicht af van alle tags die in de taken voorkomen. Dit zijn woorden die beginnen met een `#`-teken. Let er op dat als een taakbeschrijving meerdere tags bevat, alle tags ook in de lijst voorkomen.
-
-Voorbeeld:
-
-```console
-$ ./task.sh list-tags
-#chores
-#de-prj
-#pancakes
-#world-domination
-```
 
 ## :purple_heart: Taken zoeken
 
 - [x] Met `search` kan je zoeken naar taken die een bepaald (regex) tekstpatroon bevatten. Het script drukt alle taken af die voldoen aan het patroon, samen met hun ID.
 
-Voorbeeld:
-
-```console
-$ ./task.sh search pancakes
-1	Buy sugar, milk, eggs, flour for #pancakes @store
-2	Bake #pancakes @home
-3	Eat all the #pancakes @home
-4	Do the dishes #pancakes @home
-$ ./task.sh search
-Missing search pattern!
-```
-
 ## :purple_heart: Verlopen taken
 
 - [x] Met `overdue` toon je een lijst van taken met een deadline die verstreken is.
-
-Voorbeeld:
-
-```console
-$ ./task.sh overdue
-1	Buy sugar, milk, eggs, flour for #pancakes @store 2023-02-02
-6	Ask boss for a raise @work 2022-12-31
-7	Update #world-domination plans @home 2023-01-01
-```
 
 ## :purple_heart: Taak als afgerond markeren
 
@@ -230,23 +104,6 @@ $ ./task.sh overdue
   - [x] zo niet blijft de taak ongewijzigd.
 
   - [x] Als de gebruiker geen ID opgeeft, of de ID komt niet voor in het takenbestand, stopt het script met een geschikte foutmelding en exit-status.
-
-Voorbeeld:
-
-```console
-$ ./task.sh done 6
-Task: 6	Call mom @phone
-Mark task 6 as done? [y/N] N
-Task 6 kept
-$ ./task.sh done 6
-Task: 6	Call mom @phone
-Mark task 6 as done? [y/N] y
-Task 6 marked as done
-$ ./task.sh done
-Missing task ID!
-$ ./task.sh done 999
-Task 999 not found!
-```
 
 ## :white_heart: Extra functionality
 - [x] wanneer settings file niet compleet is met nodige values, vul het aan
