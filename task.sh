@@ -101,7 +101,7 @@ main() {
                     search "$@"
                 ;;
                 *)
-                    throw_error "${@:1} is not a valid argument" "Tried calling function with invalid argument '"${@:1}"'"
+                    throw_error "$1 is not a valid argument" "Tried calling function with invalid argument $1"
                 ;;
             esac
         ;;
@@ -127,7 +127,10 @@ add() {
     check_date "${@:2}" "0";
     
     # add the task to the task file
-    echo -e "$nextID\t${@:2}" >> "$TASK_FILE"
+    args=("${@:2}")
+    args_string="${args[*]}"
+    echo -e "$nextID\t$args_string" >> "$TASK_FILE"
+    
     
     
     log_action "Created Task $nextID"

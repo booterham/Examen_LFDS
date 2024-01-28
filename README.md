@@ -98,11 +98,6 @@ Volgende instellingen zijn mogelijk:
 | `TASK_EDITOR` | Absoluut pad naar `nano`                               |
 
 
-### Extra functionality
-- [x] wanneer settings file niet compleet is met nodige values, vul het aan
-- [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
-- [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
-
 ## :purple_heart: Taak toevoegen
 
 - [x] Met `add` kan je een nieuwe taak toevoegen. 
@@ -146,7 +141,7 @@ $ ./task.sh add Do the dishes \#pancakes @home
 Added task 4
 ```
 
-## :white_heart: Alle taken afdrukken
+## :purple_heart: Alle taken afdrukken
 
 - [x] Met `dump` druk je de inhoud van het takenbestand af.
 
@@ -160,7 +155,7 @@ $ ./task.sh dump
 4	Do the dishes #pancakes @home
 ```
 
-## :white_heart: Taakbestand bewerken
+## :purple_heart: Taakbestand bewerken
 
 - [x] Soms wil je wijzigingen aanbrengen aan een taak. Dit kan met `edit`. Het script opent het takenbestand in de teksteditor die in de instelling `TASK_EDITOR` staat.
 
@@ -226,9 +221,9 @@ $ ./task.sh overdue
 7	Update #world-domination plans @home 2023-01-01
 ```
 
-## :white_heart: Taak als afgerond markeren
+## :purple_heart: Taak als afgerond markeren
 
-- [ ] Met `done` kan je een taak als afgerond markeren. 
+- [x] Met `done` kan je een taak als afgerond markeren. 
   - [x] Dit doe je door het ID van de taak op te geven. 
   - [x] Het script toont de taak en vraagt bevestiging. 
   - [x] Als de gebruiker antwoordt met 'y', wordt de taak uit het taakbestand verwijderd, 
@@ -252,3 +247,9 @@ Missing task ID!
 $ ./task.sh done 999
 Task 999 not found!
 ```
+
+## Extra functionality
+- [x] wanneer settings file niet compleet is met nodige values, vul het aan
+- [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
+- [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
+- [ ] Checken of .tasks effectief juiste data bevat
