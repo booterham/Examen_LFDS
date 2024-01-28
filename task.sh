@@ -137,17 +137,20 @@ add() {
     # TODO: check if task has description, not only a date or context
     #       only tags is allowed (e.g. task: 1  #carrots @store)
     
+    # remove duplicate tags
+    newTask="$(remove_duplicate_delim "#" "${@:2}")"
+    
+    # remove duplicate contexts
+    newTask="$(remove_duplicate_delim "@" "$newTask")"
+    
     # check if date is correct, if there is one
-    check_date "${@:2}" "0";
+    check_date "$newTask" "0";
     
     # get the ID for the task
     nextID=$(get_next_task_id);
     
-    # add the task to the task file
-    args=("${@:2}")
-    args_string="${args[*]}"
-    newTask="$nextID\t$args_string"
-    echo -e "$newTask" >> "$TASK_FILE"
+    # add the task with its ID to the task file
+    echo -e "$nextID\t$newTask" >> "$TASK_FILE"
     
     # return ID
     log_action "Created Task $nextID" "Created Task $newTask"
@@ -222,8 +225,7 @@ delete_all_tasks() {
 }
 
 # Usage: delete_task ID
-# Asks for confirmation and then removes the task with the given ID from the
-# task file.
+# Asks for confirmation and then removes the task with the given ID from the task file.
 delete_task() {
     # check if has one argument
     if [ "$#" -ne 2 ]; then
@@ -261,7 +263,6 @@ delete_task() {
 dump() {
     ensure_task_file;
     cat "$TASK_FILE";
-    # not logging this action because it doesn't really affect anything
 }
 
 # Usage: edit
@@ -269,21 +270,25 @@ dump() {
 edit() {
     ensure_task_file;
     edit_file "$TASK_FILE"
-    # log_action "editor opened $TASK_FILE, file may be edited"
-    # "$TASK_EDITOR" "$TASK_FILE";
 }
 
 # Usage: edit settings file
 # opens file in selected editor to edit it
 edit_settings() {
     edit_file "$settings_file"
-    # log_action "editor opened $settings_file, file may be edited"
-    # "$TASK_EDITOR" "$settings_file"
 }
 
+# Usage : edit file
+# can be used to adit any file, also logs that the file may be changed
 edit_file() {
-    log_action "editor opened $1, file may be edited"
+    modtime=$(stat -c %Y "$1")
     "$TASK_EDITOR" "$1"
+    new_modtime=$(stat -c %Y "$1")
+    # Check if file has been modified
+    if [ "$modtime" -ne "$new_modtime" ]; then
+        log_action "editor opened $1, file has been saved and may be changed."
+    fi
+    
 }
 
 ensure_ids() {
@@ -300,10 +305,8 @@ ensure_task_file() {
     else
         # TODO task needs at least some text or a tag (otherwise it contains useless info)
         
-        # TODO id's have to be present and need tab between id and description
-        ensure_ids;
-        # TODO id's need to be unique
-        unique_ids;
+        # check if IDs are okay
+        check_ids;
         # no duplicate contexts in one task
         remove_duplicate_contexts;
         # no duplicate tags in one task
@@ -343,9 +346,10 @@ ensure_task_file() {
                     ;;
                 esac
             done
-            log_action "Task file contained faulty dates, this has now been fixed"
+            log_action "Task file no longer contains faulty dates"
         fi
     fi
+    exit 0;
 }
 
 # Usage: get_next_task_id
@@ -442,11 +446,11 @@ remove_faults() {
     # Process command-line options
     while [ "$#" -gt 0 ]; do
         case "$1" in
-            -d) # remove dates
+            -d) # to remove dates
                 replace="\1"
                 shift
             ;;
-            -t) # remove whole tasks
+            -t) # to remove the whole tasks
                 replace=""
                 shift
             ;;
@@ -489,7 +493,11 @@ remove_faults() {
 # Usage: remove all duplicate words with specified delimiter
 # common code of remove_duplicate_tags and remove_duplicate_contexts
 remove_duplicate_delim() {
-    sed -i ":a; s/\($1[^[:space:]]\+ *\)\(.*\)\1/\1\2/g; ta" "$TASK_FILE";
+    if [ "$#" -eq 1 ]; then
+        sed -i ":a; s/\($1\b\w\+\b\)\(.*\1\b\)/\2/g; ta; s/  / /g ;ta" "$TASK_FILE";
+        elif [ "$#" -ge 2 ]; then
+        echo "$(echo "${@:2}" | sed ":a; s/\($1\b\w\+\b\)\(.*\1\b\)/\2/g; ta; s/  / /g ;ta")"
+    fi
 }
 
 # Usage: remove duplicate contexts
@@ -524,9 +532,33 @@ throw_error() {
     exit 1;
 }
 
-# Usage: remove duplicate ids
-unique_ids() {
-    echo "uniqueids"
+# Usage: check ids
+# remove duplicates, add when theres no id, correct formatting if needed
+check_ids() {
+    while IFS= read -r line; do
+        # if line starts with whitespace before id, delete it
+        line="$(echo "$line" | sed 's/^[[:blank:]]\+\([0-9]\)/\1/g' )"
+        # the whitespace between ID and description should be one tab
+        line="$(echo "$line" | sed 's/^\([0-9]\+\)[[:blank:]]*\([a-zA-Z0-9]\)/\1\t\2/g' )"
+        # if task now doesnt have an integer as first char, it doesnt have an id yet
+        if [[ "$line" =~ ^[^0-9] ]]; then
+            nextID=$(get_next_task_id)
+            line="$(echo -e "$nextID\t$line")"
+        fi
+        # check if tempfile already has line with same id
+        id=$(echo "$line" | grep -oE "^[0-9]+[[:blank:]]")
+        echo "currentid is $id"
+        ids=$(get_ids "$tempfile")
+        echo "ids is $ids done"
+        if [[ "$ids" =~ "$id" ]]; then
+            echo "dupe"
+        fi
+        echo "$line" >> "$tempfile"
+    done < $TASK_FILE
+}
+
+get_ids() {
+    grep -oE "^[0-9]+[[:blank:]]" "$1"
 }
 
 # Usage: usage
