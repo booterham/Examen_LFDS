@@ -14,7 +14,9 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 - [x] updaten nu er nieuwe functionality is
 
 ```console
-Usage: ./task.sh COMMAND [ARGUMENTS]...
+Usage ${0} COMMAND [ARGUMENTS]...
+
+----- TASKS -----
 
 add 'TASK DESCRIPTION'
              add a task
@@ -33,7 +35,14 @@ overdue
 search 'PATTERN'
              show all tasks matching (regex) PATTERN
 
-TASK FORMAT
+----- SETTINGS -----
+
+edit-settings
+             edit the settings file
+list-settings
+             show all settings in the settings-file
+
+----- TASK FORMAT -----
 
 A task description is a string that may contain the following elements:
 
@@ -51,11 +60,11 @@ incrementing integer starting at 1.
 ## :white_heart: Algemene requirements
 
 - [x] Zorg dat je naam en emailadres vermeld zijn op de voorziene plaats in de commentaar bovenaan het script!
-- [ ] Gebruik shell-opties om de robuustheid van het script te verhogen (bv. behandelen van onbestaande variabelen).
+- [x] Gebruik shell-opties om de robuustheid van het script te verhogen (bv. behandelen van onbestaande variabelen).
 - [ ] Gebruik ShellCheck om fouten te voorkomen!
 - [ ] Gebruik `stdout` exclusief voor het afdrukken van informatie uit het takenbestand: taakbeschrijvingen, contexten, labels, enz. Foutboodschappen, waarschuwingen, enz. worden afgedrukt op `stderr`.
 - [ ] Vermijd "hard-coded" waarden in de code, gebruik zoveel mogelijk variabelen!
-- [ ] Het script wordt altijd opgeroepen met als eerste argument een commando. Als dit niet het geval is, wordt verondersteld dat de gebruiker `help` bedoelde.
+- [x] Het script wordt altijd opgeroepen met als eerste argument een commando. Als dit niet het geval is, wordt verondersteld dat de gebruiker `help` bedoelde.
 
 ### :white_heart: Minimale requirements voor inhoudelijke beoordeling
 
@@ -64,7 +73,7 @@ De hieronder opgesomde criteria zijn noodzakelijk om een bestand als script te k
 - [ ] Het resultaat van zowel 
   - [ ] `bash -n task.sh` als 
   - [ ] `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
-- [ ] Het script mag geen DOS regeleindes (CRLF) hebben, anders kan Bash het niet interpreteren
+- [x] Het script mag geen DOS regeleindes (CRLF) hebben, anders kan Bash het niet interpreteren
 - [x] Het script moet een geldige "shebang" hebben op de eerste regel
 - [x] Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
 
@@ -91,16 +100,19 @@ Volgende instellingen zijn mogelijk:
 
 ### Extra functionality
 - [x] wanneer settings file niet compleet is met nodige values, vul het aan
-- [ ] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
-- [ ] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
+- [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
+- [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
 
-## :white_heart: Taak toevoegen
+## :purple_heart: Taak toevoegen
 
-- [ ] Met `add` kan je een nieuwe taak toevoegen. 
-  - [ ] Elke taak krijgt een ID, een geheel getal beginnend bij 1 (zie verder). 
-  - [ ] Na toevoegen van de taak wordt deze ID afgedrukt. 
-  - [ ] De taak wordt toegevoegd aan het einde van het taakbestand. 
-  - [ ] Aan het begin van de lijn komt het ID, gevolgd door een TAB-karakter en vervolgens de taakbeschrijving zelf.
+- [x] Met `add` kan je een nieuwe taak toevoegen. 
+  - [x] Elke taak krijgt een ID, een geheel getal beginnend bij 1 (zie verder). 
+  - [x] Na toevoegen van de taak wordt deze ID afgedrukt. 
+  - [x] De taak wordt toegevoegd aan het einde van het taakbestand. 
+  - [x] Aan het begin van de lijn komt het ID, gevolgd door een TAB-karakter en vervolgens de taakbeschrijving zelf.
+
+### Extra functionality
+- [x] controleer correct formaat als er datum is bijgevoegd
 
 Voorbeeld:
 
@@ -111,15 +123,15 @@ $ ./task.sh add
 Missing task description!
 ```
 
-- [ ] Als je geen taakbeschrijving opgeeft, stopt het script met een geschikte foutmelding en exit-status.
+- [x] Als je geen taakbeschrijving opgeeft, stopt het script met een geschikte foutmelding en exit-status.
 
-- [ ] Het script bevat een functie `get_next_task_id` die de laagst mogelijke ID-waarde teruggeeft die nog niet in gebruik is. Deze wordt bepaald door in het takenbestand te zoeken naar reeds gebruikte IDs, beginnend met 1, vervolgens 2, enz. totdat een vrij ID gevonden wordt. Deze wordt dan toegekend aan de nieuwe taak.
+- [x] Het script bevat een functie `get_next_task_id` die de laagst mogelijke ID-waarde teruggeeft die nog niet in gebruik is. Deze wordt bepaald door in het takenbestand te zoeken naar reeds gebruikte IDs, beginnend met 1, vervolgens 2, enz. totdat een vrij ID gevonden wordt. Deze wordt dan toegekend aan de nieuwe taak.
 
 In de beschrijving van een taak *kan* je volgende elementen gebruiken:
 
-- [ ] Een deadline, in de vorm van `jjjj-mm-dd`
-- [ ] Een "context", in de vorm van `@context`. Hiermee bedoelen we de plaats waar de taak kan uitgevoerd worden (bv. `@home`, `@campus`, `@phone`, ...). Dit is een concept uit het productiviteitssysteem [Getting Things Done](https://en.wikipedia.org/wiki/Getting_Things_Done).
-- [ ] Een "tag", in de vorm van `#tag`. Dit kan de naam van een project zijn, een trefwoord, prioriteitcode, ... Meerdere tags zijn mogelijk. Let op! Omdat Bash het `#`-teken speciaal behandelt (commentaar), moet je dit op de CLI escapen met een `\`-teken of de taakbeschrijving tussen aanhalingstekens zetten.
+- [x] Een deadline, in de vorm van `jjjj-mm-dd` (wordt gecheckt)
+- [x] Een "context", in de vorm van `@context`. Hiermee bedoelen we de plaats waar de taak kan uitgevoerd worden (bv. `@home`, `@campus`, `@phone`, ...). Dit is een concept uit het productiviteitssysteem [Getting Things Done](https://en.wikipedia.org/wiki/Getting_Things_Done).
+- [x] Een "tag", in de vorm van `#tag`. Dit kan de naam van een project zijn, een trefwoord, prioriteitcode, ... Meerdere tags zijn mogelijk. Let op! Omdat Bash het `#`-teken speciaal behandelt (commentaar), moet je dit op de CLI escapen met een `\`-teken of de taakbeschrijving tussen aanhalingstekens zetten.
 
 Voorbeeld:
 
@@ -136,7 +148,7 @@ Added task 4
 
 ## :white_heart: Alle taken afdrukken
 
-- [ ] Met `dump` druk je de inhoud van het takenbestand af.
+- [x] Met `dump` druk je de inhoud van het takenbestand af.
 
 Voorbeeld:
 
@@ -150,7 +162,7 @@ $ ./task.sh dump
 
 ## :white_heart: Taakbestand bewerken
 
-- [ ] Soms wil je wijzigingen aanbrengen aan een taak. Dit kan met `edit`. Het script opent het takenbestand in de teksteditor die in de instelling `TASK_EDITOR` staat.
+- [x] Soms wil je wijzigingen aanbrengen aan een taak. Dit kan met `edit`. Het script opent het takenbestand in de teksteditor die in de instelling `TASK_EDITOR` staat.
 
 ```console
 $ ./task.sh edit

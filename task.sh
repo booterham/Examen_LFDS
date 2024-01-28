@@ -10,6 +10,15 @@
 
 # TODO
 
+# script stops when uninitialized variable is used or when command has exit status that isn't zero
+set -eu
+
+# set pipeline as failed when one of commands contained fails
+set -eo pipefail
+
+
+
+
 #------------------------------------------------------------------------------
 # Variables
 #------------------------------------------------------------------------------
@@ -34,15 +43,20 @@ main() {
     
     
     # Evaluate the settings file
-    # shellcheck source=/dev/null
+    # shellcheck source="$settings_file"
     # check if the settings file has bash syntax
-    report_errors $(bash -n "$settings_file" 2>&1);
+    if [[ -n "$(bash -n "$settings_file" 2>&1)" ]]; then
+        throw_error "The settings file $settings_file contains syntax errors" "$(bash -n "$settings_file" 2>&1)"
+    fi
     # check if there are no problems loading the variables
     # (sometimes syntax can be okay but there's still errors, like when the file contains 1=1)
-    report_errors $(source "$settings_file" 2>&1);
+    if [[ -n "$(source "$settings_file" 2>&1)" ]]; then
+        throw_error "The settings file $settings_file contains syntax errors" "$(source "$settings_file" 2>&1)"
+    fi
     source "$settings_file"
-    # if settings_file doesn't contain required values, add them
+    # if settings_file doesn't contain required values, add standard values
     complete_settings;
+    
     
     # Check if arguments are present. If not, assume "help" was meant
     # Using a case statement, interpret the command (first argument) and any
@@ -50,24 +64,47 @@ main() {
     case "$#" in
         0)
         usage;;
-        1)
+        *)
             case "$1" in
                 "help")
                     usage
                 ;;
+                "dump")
+                    dump
+                ;;
+                "edit")
+                    edit
+                ;;
+                "list-contexts")
+                    list_contexts
+                ;;
+                "list-tags")
+                    list_tags
+                ;;
+                "overdue")
+                    overdue
+                ;;
                 "edit-settings")
-                    exec "$TASK_EDITOR" "$settings_file"
+                    edit_settings
                 ;;
                 "list-settings")
-                    cat "$settings_file"
+                    list_settings
+                ;;
+                "add")
+                    add "$@"
+                ;;
+                "done")
+                    echo "done moet nog gefixt worden"
+                ;;
+                "search")
+                    search "$@"
+                ;;
+                *)
+                    throw_error "${@:1} is not a valid argument" "Tried calling function with invalid argument '"${@:1}"'"
                 ;;
             esac
         ;;
-        *)
-            
     esac
-    
-    
 }
 
 #------------------------------------------------------------------------------
@@ -78,7 +115,40 @@ main() {
 # Usage: add "TASK"
 # Adds a task to the task file and responds with the task ID.
 add() {
-    echo "add moet nog geïmplementeerd worden"
+    # check if there's an argument
+    if [ "$#" -lt 2 ]; then
+        throw_error "Missing description" "Tried adding empty task."
+    fi
+    # get the ID for the task
+    nextID=$(get_next_task_id);
+    
+    # check if date is correct, if there is one
+    check_date "${@:2}" "0";
+    
+    # add the task to the task file
+    echo -e "$nextID\t${@:2}" >> "$TASK_FILE"
+    
+    
+    log_action "Created Task $nextID"
+    # return ID
+    echo "Created Task $nextID"
+}
+
+
+# Usage: check if date is valid
+# for adding tasks and for checking the task file.
+# if the date is faulty and if last param is 0, stop the program, if not, return that the date is faulty
+check_date() {
+    datum=$(echo "${@:1:$#-1}" | grep -Eo "[0-9]+-[0-9]+-[0-9]+" || echo "")
+    if [ -n "$datum" ]; then
+        # check if the format is correct
+        if ! date --date="$datum" &>/dev/null; then
+            if [ "${!#}" -eq 0 ]; then
+                throw_error "Invalid date: $datum" "Tried adding task with invalid date: $datum"
+            else echo False
+            fi
+        fi
+    fi
 }
 
 # Usage: complete the settings file
@@ -91,24 +161,17 @@ complete_settings() {
         vim_location=$(which vim);
         echo -e "TASK_EDITOR=$vim_location" >> "$settings_file";
     fi
+    log_action "$settings_file has been filled with necessary values"
 }
 
 # Usage: create_settings_file
-# Creates the settings file with default values.
+# Creates the settings file with default values
 create_settings_file() {
     # don't hardcode the absolute path to vim
     vim_location=$(which vim);
     echo -e "TASK_FILE=~/.tasks\nTASK_EDITOR=$vim_location" > "$settings_file";
-}
-
-# Usage: check for errors in the settings file
-# if there are errors in the syntax or while loading, thise are handled by this function
-report_errors() {
-    if [[ -n $1 ]]; then
-        echo -e "The settings file $settings_file contains syntax errors.\nPlease check $logs_file for more detailed information."
-        echo -e "$(date +"%d/%m/%Y-%H:%M:%S")\t$1\n" >> "$logs_file"
-        exit 1;
-    fi
+    log_action "$settings_file created"
+    
 }
 
 # Usage: delete_task ID
@@ -121,29 +184,100 @@ delete_task() {
 # Usage: dump
 # Dumps the task file contents to stdout.
 dump() {
-    echo "dump moet nog geïmplementeerd worden"
+    ensure_task_file;
+    cat "$TASK_FILE";
+    # not logging this action because it doesn't really affect anything
 }
 
 # Usage: edit
 # Opens the task file in the editor specified in the settings file.
 edit() {
-    echo "edit moet nog geïmplementeerd worden"
-    
+    ensure_task_file;
+    log_action "editor opened $TASK_FILE, file may be edited"
+    exec "$TASK_EDITOR" "$TASK_FILE";
+}
+
+# Usage: edit settings file
+# opens file in selected editor to edit it
+edit_settings() {
+    log_action "editor opened $settings_file, file may be edited"
+    exec "$TASK_EDITOR" "$settings_file"
+}
+
+# Usage: Ensure the existence and syntax of a task file
+# Check the syntax of a task file. If there are incorrect lines, give the option
+# to fix them manually or remove them. If the task file doesn't exist, create a new empty one
+ensure_task_file() {
+    # task file needs to exist
+    if [ ! -e "$TASK_FILE" ]; then
+        touch "$TASK_FILE";
+    else
+        :
+        # TODO id' have to be present
+        # TODO id's need to be unique
+        # date in correct format
+        faulty_tasks=""
+        while IFS= read -r line; do
+            if [ "$(check_date "$line" "1")" == "False" ]; then
+                faulty_task="$(echo "$line" | grep -oE "^[0-9]+")"
+                faulty_tasks+="$faulty_task"
+                echo "task "$faulty_task" has incorrect date"
+            fi
+        done < $TASK_FILE
+        if [ -n "$faulty_tasks" ]; then
+            echo -e "[1]\tRemove incorrect dates"
+            echo -e "[2]\tRemove tasks with incorrect dates"
+            echo -e "[3]\tCorrect dates manually"
+            read -p "Choose option 1, 2 or 3: " method
+            case $method in
+                1)
+                  remove_dates "$faulty_tasks"
+                ;;
+                2)
+                  remove_tasks
+                ;;
+                3)
+                    :
+                ;;
+                *)
+            esac
+        fi
+    fi
 }
 
 # Usage: get_next_task_id
 # Looks in the task file for the next available task ID (an integer starting at
 # 1) and prints it. If a task was previously deleted, its ID may be reused.
 get_next_task_id() {
-    echo "get_nect_task_id moet nog geïmplementeerd worden"
+    # read all ID's from file, sort them for later
+    IDs=$(grep -Eo "^[0-9]+" "$TASK_FILE" | sort -n );
     
+    
+    # Find the lowest integer not in the existing IDs
+    nextID=1
+    for id in $IDs; do
+        if [ "$id" -eq "$nextID" ]; then
+            ((nextID++));
+        else
+            break;
+        fi
+    done
+    log_action "Found Next ID $nextID"
+    echo "$nextID";
 }
 
 # Usage: list_contexts
 # Lists all contexts in the task file with the number of tasks for each.
 list_contexts() {
+    ensure_task_file;
     echo "list_contexts moet nog geïmplementeerd worden"
     
+}
+
+# Usage: list settings
+# Print the settings file to stdout
+list_settings() {
+    cat "$settings_file";
 }
 
 # Usage: list_tags
@@ -151,14 +285,24 @@ list_contexts() {
 # task) alphabetically.
 list_tags() {
     echo "list_tags moet nog geïmplementeerd worden"
-    
+}
+
+# Usage: log actions in log file
+# called by functions after propper execution
+log_action() {
+    echo -e "$(date +"%d/%m/%Y-%H:%M:%S")\tSUCCES\t$1" >> "$logs_file"
 }
 
 # Usage: overdue
 # Lists all tasks with a deadline (in format yyyy-mm-dd) in the past.
 overdue() {
     echo "overdue moet nog geïmplementeerd worden"
-    
+}
+
+# Usage
+#
+remove_tasks() {
+    echo "remove tasks needs to be implemented"
 }
 
 # Usage: search PATTERN
@@ -166,6 +310,14 @@ overdue() {
 search() {
     echo "search moet nog geïmplementeerd worden"
     
+}
+
+# Usage: throw errors, give info that needs to be printed and pass the error for the logs
+# general formatting for the used errors in the code
+throw_error() {
+    echo -e "Error: $1.\nTry ${0} \"help\" for usage information." >&2
+    echo -e "$(date +"%d/%m/%Y-%H:%M:%S")\tERROR\t$2" >> "$logs_file"
+    exit 1;
 }
 
 # Usage: usage
