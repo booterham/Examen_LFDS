@@ -229,12 +229,12 @@ $ ./task.sh overdue
 ## :white_heart: Taak als afgerond markeren
 
 - [ ] Met `done` kan je een taak als afgerond markeren. 
-  - [ ] Dit doe je door het ID van de taak op te geven. 
-  - [ ] Het script toont de taak en vraagt bevestiging. 
-  - [ ] Als de gebruiker antwoordt met 'y', wordt de taak uit het taakbestand verwijderd, 
-  - [ ] zo niet blijft de taak ongewijzigd.
+  - [x] Dit doe je door het ID van de taak op te geven. 
+  - [x] Het script toont de taak en vraagt bevestiging. 
+  - [x] Als de gebruiker antwoordt met 'y', wordt de taak uit het taakbestand verwijderd, 
+  - [x] zo niet blijft de taak ongewijzigd.
 
-  - [ ] Als de gebruiker geen ID opgeeft, of de ID komt niet voor in het takenbestand, stopt het script met een geschikte foutmelding en exit-status.
+  - [x] Als de gebruiker geen ID opgeeft, of de ID komt niet voor in het takenbestand, stopt het script met een geschikte foutmelding en exit-status.
 
 Voorbeeld:
 

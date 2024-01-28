@@ -25,6 +25,7 @@ set -eo pipefail
 
 settings_file=~/.taskrc;
 logs_file=~/.tasklog
+tempfile=tempfile.txt
 
 #------------------------------------------------------------------------------
 # Main function
@@ -94,7 +95,7 @@ main() {
                     add "$@"
                 ;;
                 "done")
-                    echo "done moet nog gefixt worden"
+                    delete_task "$@"
                 ;;
                 "search")
                     search "$@"
@@ -156,12 +157,13 @@ check_date() {
 complete_settings() {
     if ! grep -q "TASK_FILE" "$settings_file"; then
         echo "TASK_FILE=~/.tasks" >> "$settings_file"
+        log_action "TASK_FILE standard value has been added to settings file $settings_file"
     fi
     if ! grep -q "TASK_EDITOR" "$settings_file"; then
         vim_location=$(which vim);
         echo -e "TASK_EDITOR=$vim_location" >> "$settings_file";
+        log_action "TASK_EDITOR standard value has been added to settings file $settings_file"
     fi
-    log_action "$settings_file has been filled with necessary values"
 }
 
 # Usage: create_settings_file
@@ -178,7 +180,34 @@ create_settings_file() {
 # Asks for confirmation and then removes the task with the given ID from the
 # task file.
 delete_task() {
-    echo "delete_task moet nog geïmplementeerd worden"
+    # check if has one argument
+    if [ "$#" -ne 2 ]; then
+        throw_error "Needs exactly one argument" "Tried passing "$#" arguments into delete_task()"
+    fi
+    # check if task exists
+    task=$(cat $TASK_FILE | grep "^$2[^0-9]" || echo "")
+    if [ -n "$task" ]; then
+        selection=0;
+        while [ "$selection" -eq 0 ]; do
+            read -p "Delete Task $task [y/n]? " okay
+            case "$okay" in
+                "y")
+                    # mv "$tempfile" "$TASK_FILE"
+                    sedstring="/$task/d"
+                    sed -i "$sedstring" "$TASK_FILE"
+                    selection=1
+                ;;
+                "n")
+                    exit 0;
+                ;;
+                *)
+                    echo "Invalid option $okay. Enter 'y' or 'n'."
+                ;;
+            esac
+        done
+    else
+        throw_error "Task $2 doesn't exist" "Tried deleting unexisting task $2"
+    fi
 }
 
 # Usage: dump
@@ -194,7 +223,7 @@ dump() {
 edit() {
     ensure_task_file;
     log_action "editor opened $TASK_FILE, file may be edited"
-    exec "$TASK_EDITOR" "$TASK_FILE";
+    "$TASK_EDITOR" "$TASK_FILE";
 }
 
 # Usage: edit settings file
@@ -213,34 +242,38 @@ ensure_task_file() {
         touch "$TASK_FILE";
     else
         :
-        # TODO id' have to be present
+        # TODO id's have to be present
         # TODO id's need to be unique
         # date in correct format
-        faulty_tasks=""
+        faulty_tasks=()
         while IFS= read -r line; do
             if [ "$(check_date "$line" "1")" == "False" ]; then
-                faulty_task="$(echo "$line" | grep -oE "^[0-9]+")"
-                faulty_tasks+="$faulty_task"
-                echo "task "$faulty_task" has incorrect date"
+                id="$(echo "$line" | grep -oE "^[0-9]+")"
+                faulty_tasks+=("$id")
+                echo "task "$id" has incorrect date"
             fi
         done < $TASK_FILE
-        if [ -n "$faulty_tasks" ]; then
+        if [ ${#faulty_tasks[@]} -gt 0 ]; then
             echo -e "[1]\tRemove incorrect dates"
             echo -e "[2]\tRemove tasks with incorrect dates"
             echo -e "[3]\tCorrect dates manually"
-            read -p "Choose option 1, 2 or 3: " method
-            case $method in
-                1)
-                  remove_dates "$faulty_tasks"
-                ;;
-                2)
-                  remove_tasks
-                ;;
-                3)
-                    :
-                ;;
-                *)
-            esac
+            read -p "Choose option 1 or 2: " method
+            selection=0
+            while [ "$selection" -eq 0 ]; do
+                case $method in
+                    1)
+                        remove_dates "${faulty_tasks[*]}"
+                        selection=1
+                    ;;
+                    2)
+                        remove_tasks "${faulty_tasks[*]}"
+                        selection=1;
+                    ;;
+                    *)
+                        echo "Invalid option $method. Please choose '1' or '2'"
+                    ;;
+                esac
+            done
         fi
     fi
 }
@@ -299,10 +332,66 @@ overdue() {
     echo "overdue moet nog geïmplementeerd worden"
 }
 
+# Usage: remove the date from a list of tasks, given the id's
+# used for removing faulty dates
+remove_dates() {
+    faulty_ids=($1)  # Split space-separated IDs
+    cp "$TASK_FILE" "$tempfile"
+    for id in "${faulty_ids[@]}"; do
+        sedstring="s/\(^$id.*[^0-9]\)[0-9]\+-[0-9]\+-[0-9]\+ */\1/g"
+        sed -i "$sedstring" "$tempfile"
+    done
+    sed -i '/^$/d' "$tempfile"
+    cat "$tempfile"
+    selection=0
+    while [ "$selection" -eq 0 ]; do
+        read -p "Changes Okay [y/n]? " okay
+        case "$okay" in
+            "y")
+                mv "$tempfile" "$TASK_FILE"
+                selection=1
+            ;;
+            "n")
+                ensure_task_file;
+                selection=1
+            ;;
+            *)
+                echo "Invalid option $okay. Enter 'y' or 'n'."
+            ;;
+        esac
+    done
+}
+
+
+
 # Usage
 #
 remove_tasks() {
-    echo "remove tasks needs to be implemented"
+    faulty_ids=($1)  # Split space-separated IDs
+    cp "$TASK_FILE" "$tempfile"
+    for id in "${faulty_ids[@]}"; do
+        sedstring="s/^$id.*[^0-9][0-9]\+-[0-9]\+-[0-9]\+ *//g"
+        sed -i "$sedstring" "$tempfile"
+    done
+    sed -i '/^$/d' "$tempfile"
+    cat "$tempfile"
+    selection=0
+    while [ "$selection" -eq 0 ]; do
+        read -p "Changes Okay [y/n]? " okay
+        case "$okay" in
+            "y")
+                mv "$tempfile" "$TASK_FILE"
+                selection=1
+            ;;
+            "n")
+                ensure_task_file;
+                selection=1
+            ;;
+            *)
+                echo "Invalid option $okay. Enter 'y' or 'n'."
+            ;;
+        esac
+    done
 }
 
 # Usage: search PATTERN
