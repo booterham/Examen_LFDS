@@ -36,8 +36,8 @@
 ## Uitstellen
 
 - [ ] (CR-08) Met postpone kan je de deadline van een bepaalde taak uitstellen.
-- [ ] Je geeft een taaknummer mee, samen met het aantal dagen waarmee de deadline opgeschoven moet worden.
-- [ ] Als je geen termijn meegeeft, wordt de deadline standaard met 7 dagen opgeschoven.
+    - [ ] Je geeft een taaknummer mee, samen met het aantal dagen waarmee de deadline opgeschoven moet worden.
+    - [ ] Als je geen termijn meegeeft, wordt de deadline standaard met 7 dagen opgeschoven.
 
 ### andere
 

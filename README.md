@@ -18,7 +18,7 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 - [x] Zorg dat je naam en emailadres vermeld zijn op de voorziene plaats in de commentaar bovenaan het script!
 - [x] Gebruik shell-opties om de robuustheid van het script te verhogen (bv. behandelen van onbestaande variabelen).
 - [x] Gebruik ShellCheck om fouten te voorkomen!
-- [ ] Gebruik `stdout` exclusief voor het afdrukken van informatie uit het takenbestand: taakbeschrijvingen, contexten, labels, enz. Foutboodschappen, waarschuwingen, enz. worden afgedrukt op `stderr`.
+- [x] Gebruik `stdout` exclusief voor het afdrukken van informatie uit het takenbestand: taakbeschrijvingen, contexten, labels, enz. Foutboodschappen, waarschuwingen, enz. worden afgedrukt op `stderr`.
 - [x] Vermijd "hard-coded" waarden in de code, gebruik zoveel mogelijk variabelen!
 - [x] Het script wordt altijd opgeroepen met als eerste argument een commando. Als dit niet het geval is, wordt verondersteld dat de gebruiker `help` bedoelde.
 
@@ -111,5 +111,5 @@ In de beschrijving van een taak *kan* je volgende elementen gebruiken:
 ### :purple_heart: Settings kunnen bewerken via script
 - [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
 - [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
-- [ ] Checken of .tasks effectief juiste data bevat mbv `ensure_task_file()`
+- [x] Checken of .tasks effectief juiste data bevat mbv `ensure_task_file()`
 - [ ] List logs met variabele N last logs mbv `list_logs()`
