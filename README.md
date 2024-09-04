@@ -13,20 +13,20 @@ Het bijgevoegde bestand `task-start.sh` bevat startcode met een basisstructuur m
 - [x] Gebruik hiervoor een Here Document!
 - [x] updaten nu er nieuwe functionality is
 
-## :white_heart: Algemene requirements
+## :purple_heart: Algemene requirements
 
 - [x] Zorg dat je naam en emailadres vermeld zijn op de voorziene plaats in de commentaar bovenaan het script!
 - [x] Gebruik shell-opties om de robuustheid van het script te verhogen (bv. behandelen van onbestaande variabelen).
-- [ ] Gebruik ShellCheck om fouten te voorkomen!
+- [x] Gebruik ShellCheck om fouten te voorkomen!
 - [ ] Gebruik `stdout` exclusief voor het afdrukken van informatie uit het takenbestand: taakbeschrijvingen, contexten, labels, enz. Foutboodschappen, waarschuwingen, enz. worden afgedrukt op `stderr`.
-- [ ] Vermijd "hard-coded" waarden in de code, gebruik zoveel mogelijk variabelen!
+- [x] Vermijd "hard-coded" waarden in de code, gebruik zoveel mogelijk variabelen!
 - [x] Het script wordt altijd opgeroepen met als eerste argument een commando. Als dit niet het geval is, wordt verondersteld dat de gebruiker `help` bedoelde.
 
-### :white_heart: Minimale requirements voor inhoudelijke beoordeling
+### :purple_heart: Minimale requirements voor inhoudelijke beoordeling
 
-- [ ] Het resultaat van zowel 
-  - [ ] `bash -n task.sh` als 
-  - [ ] `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
+- [x] Het resultaat van zowel 
+  - [x] `bash -n task.sh` als 
+  - [x] `shellcheck --severity=error task.sh` moet succesvol zijn (dus zonder fouten).
 - [x] Het script mag geen DOS regeleindes (CRLF) hebben, anders kan Bash het niet interpreteren
 - [x] Het script moet een geldige "shebang" hebben op de eerste regel
 - [x] Als we het script uitvoeren met optie `help`, dan moet dit lukken (we krijgen dus de Usage: boodschap te zien en de exit-status is 0)
