@@ -59,12 +59,16 @@ main() {
     # Check if arguments are present. If not, assume "help" was meant
     # Using a case statement, interpret the command (first argument) and any
     # other options or arguments, and call the appropriate function
+
     case "$#" in
     0)
         usage
         ;;
     *)
-        case "$1" in
+        # get all capital letters out of $1
+        # CR-01 was probably better using switch and -i for case insensitive, but i can't seem to get it to work, so here is an uglier (but working) solution:
+        command="$(echo "$1" | sed 's/A/a/g;s/B/b/g;s/C/c/g;s/D/d/g;s/E/e/g;s/F/f/g;s/G/g/g;s/H/h/g;s/I/i/g;s/J/j/g;s/K/k/g;s/L/l/g;s/M/m/g;s/N/n/g;s/O/o/g;s/P/p/g;s/Q/q/g;s/R/r/g;s/S/s/g;s/T/t/g;s/U/u/g;s/V/v/g;s/W/w/g;s/X/x/g;s/Y/y/g;s/Z/z/g')"
+        case "$command" in
         "help")
             usage
             ;;
@@ -103,6 +107,9 @@ main() {
             ;;
         "start-over")
             delete_all_tasks
+            ;;
+        "postpone")
+            postpone "$@"
             ;;
         *)
             case "$#" in
@@ -144,11 +151,17 @@ add() {
     # remove duplicate contexts
     newTask="$(remove_duplicate_delim "@" "$newTask")"
 
+    # check if new task contains a deadline
+    contains_deadline "$newTask"
+
     # check if date is correct, if there is one
     check_date "$newTask" "0"
 
     # check if the task contains useful content
     check_content -i "$newTask"
+
+    # CR-04: check if there are no duplicates already
+    check_duplicate_task "$newTask"
 
     # get the ID for the task
     nextID=$(get_next_task_id)
@@ -225,7 +238,25 @@ check_date() {
                 echo False
             fi
         fi
+    fi
+}
 
+# Usage: check with a given task if a task that has exactly the same description
+# CR-04
+check_duplicate_task() {
+    while read -r line; do
+        line="$(echo "$line" | sed 's/^[0-9]\+\t//g')"
+        if [[ "$line" == "$1" ]]; then
+            throw_error "Duplicate tasks not allowed." "Tried to add duplicate task $1"
+        fi
+    done <"$TASK_FILE"
+}
+
+# Usage: check if the task contains a date
+contains_deadline() {
+    datum=$(echo "$1" | grep -Eo "[0-9]+-[0-9]+-[0-9]+" || echo "")
+    if [ -z "$datum" ]; then
+        throw_error_usage "Missing deadline, task not added" "Tried adding task without deadline."
     fi
 }
 
@@ -240,6 +271,11 @@ complete_settings() {
         vim_location=$(which vim)
         echo -e "TASK_EDITOR=$vim_location" >>"$settings_file"
         log_action "TASK_EDITOR standard value has been added to settings file $settings_file"
+    fi
+    # CR-02
+    if ! grep -q "TASK_ARCH" "$settings_file"; then
+        echo -e "TASK_ARCH=~/.task-archive" >>"$settings_file"
+        log_action "TASK_ARCH standard value has been added to settings file $settings_file"
     fi
 }
 
@@ -270,7 +306,8 @@ correct_date_manually() {
 create_settings_file() {
     # don't hardcode the absolute path to vim
     vim_location=$(which vim)
-    echo -e "TASK_FILE=~/.tasks\nTASK_EDITOR=$vim_location" >"$settings_file"
+    # CR-02
+    echo -e "TASK_FILE=~/.tasks\nTASK_EDITOR=$vim_location\nTASK_ARCH=~/.task-archive" >"$settings_file"
     log_action "settings file $settings_file created"
 
 }
@@ -295,9 +332,11 @@ delete_task() {
             read -p "Delete Task $task [Y/n]? " okay
             case "$okay" in
             "y" | "")
-                # mv "$tempfile" "$TASK_FILE"
+                # CR-05
                 sedstring="/$task/d"
                 sed -i "$sedstring" "$TASK_FILE"
+                # CR-05 - add removed task into archive
+                echo "$task" | sed 's/[0-9]\+\t//g' >>"$TASK_ARCH"
                 log_action "Removed Task $task" "Removed Task $task"
                 selection=1
                 ;;
@@ -441,7 +480,8 @@ list_contexts() {
 list_delim() {
     ensure_task_file
     # find all contexts, per context, count lines with matching grep
-    cat "$TASK_FILE" | grep -oE "$1[^ ]+" | sort | uniq -c
+    # CR-07 list contexts and list tags both in descending order of tasks
+    cat "$TASK_FILE" | grep -oE "$1[^ ]+" | sort -r | uniq -c
 }
 
 # Usage: list ligs
@@ -635,7 +675,35 @@ check_ids() {
 }
 
 get_ids() {
-    echo "$(grep -oE "^[0-9]+[[:blank:]]" "$1")"
+    grep -oE "^[0-9]+[[:blank:]]" "$1"
+}
+
+# CR-07
+# Usage: postpone a task to a given deadline. If no deadline is given, postpone for exactly one week
+postpone() {
+    if [ "$#" -eq 3 ]; then
+        # check if tasks exists with given id
+        echo "$@"
+        # check if task exists
+        task=$(cat "$TASK_FILE" | grep "^$2[^0-9]" || echo "")
+        if [ -n "$task" ]; then
+            echo "exists"
+            # replace the date part by given date TODO
+                # put line without the date in a variable
+                # delete line in original file
+                # add given date to variable with line
+                # put line back in taskfile
+            
+        else
+            throw_error_usage "Task $2 doesn't exist" "Tried deleting unexisting task $2"
+        fi
+    elif [ "$#" -eq 2 ]; then
+        # new deadline is current deadline + 7 days TODO
+        # no clue hoe ik data moet optellen in bash helaas
+        echo ""
+    else
+        throw_error_usage "Wrong amount of arguments for postpone" "Tried calling postpone with too many/too little arguments."
+    fi
 }
 
 # Usage: usage
@@ -647,43 +715,46 @@ Usage ${0} COMMAND [ARGUMENTS]...
 ----- TASKS -----
 
 add 'TASK DESCRIPTION'
-             add a task
+            add a task
 done ID
-             mark task with ID as done
+            mark task with ID as done
 dump
-             show all tasks, including task ID
+            show all tasks, including task ID
 edit
-             edit the task file
+            edit the task file
 list-contexts
-             show all contexts (starting with @)
+            show all contexts (starting with @)
 list-tags
-             show all tags (starting with #)
+            show all tags (starting with #)
 overdue
-             show all overdue tasks
+            show all overdue tasks
 search 'PATTERN'
-             show all tasks matching (regex) PATTERN
+            show all tasks matching (regex) PATTERN
 start-over
-             delete all tasks
+            delete all tasks
+postpone ID [deadline]
+            set the deadline of an existing task
+            if no deadline is given, the task is postponed by 7 days
 
 ----- SETTINGS & LOGS -----
 
 edit-settings
-             edit the settings file
+            edit the settings file
 list-settings
-             show all settings in the settings-file
+            show all settings in the settings-file
 list-logs N
-             show last N logs
+            show last N logs
 
 ----- TASK FORMAT -----
 
 A task description is a string that may contain the following elements:
 
-- @context,   i.e. a place or situation in which the task can be performed
-              (See Getting Things Done) e.g. @home, @campus, @phone, @store, ...
-- #tag        tags, that can be used to group tasks within projects,
-              priorities, etc. e.g. #linux, #de-prj, #mit (most important
-              task), ... Multiple tags are allowed!
-- yyyy-mm-dd  a due date in ISO-8601 format
+- @context,     i.e. a place or situation in which the task can be performed
+                (See Getting Things Done) e.g. @home, @campus, @phone, @store, ...
+- #tag          tags, that can be used to group tasks within projects,
+                priorities, etc. e.g. #linux, #de-prj, #mit (most important
+                task), ... Multiple tags are allowed!
+- yyyy-mm-dd    a due date in ISO-8601 format
 
 In the task file, each task will additionaly be assigned a unique ID, an
 incrementing integer starting at 1.
