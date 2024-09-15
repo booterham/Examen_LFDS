@@ -112,4 +112,4 @@ In de beschrijving van een taak *kan* je volgende elementen gebruiken:
 - [x] mogelijkheid om settings aan te passen door task.sh edit-settings op te roepen
 - [x] mogelijkheid om huidige settings te bekijken door task.sh list-settings op te roepen 
 - [x] Checken of .tasks effectief juiste data bevat mbv `ensure_task_file()`
-- [ ] List logs met variabele N last logs mbv `list_logs()`
+- [x] List logs met variabele N last logs mbv `list_logs()`
